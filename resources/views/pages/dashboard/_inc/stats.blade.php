@@ -376,18 +376,6 @@
     <div class="col-12 col-sm-6 col-xxl d-flex">
         <div class="card flex-fill">
             <div class="card-body py-4">
-                <div class="d-flex align-items-center mb-3">
-                    <input id="lotNumberInput" class="form-control form-control-lg mr-2" type="text" placeholder="Enter LOT #" style="width: 60%;">
-                    <button id="checkLotButton" class="btn btn-primary form-control-lg" style="width: 40%;">Check Lot #</button>
-                </div>
-                <h4 id="lot_status" class="text-center"></h4>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-12 col-sm-6 col-xxl d-flex">
-        <div class="card flex-fill">
-            <div class="card-body py-4">
                 <div class="media">
                     <div class="media-body">
                         <h3 class="mb-2"> {{ \App\Models\Vehicle::countVehicles('PARTS CAR') }} "Parts Vehicle Inventory"</h3>
