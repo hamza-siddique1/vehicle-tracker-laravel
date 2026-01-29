@@ -17,7 +17,7 @@
         "laravel/framework": "^9.19",
         "laravel/helpers": "^1.4",
         "laravel/sanctum": "^2.11",
-        "laravel/telescope": "^5",
+        "laravel/telescope": "^5.15",
         "laravel/tinker": "^2.5",
         "rap2hpoutre/fast-excel": "^3.0",
         "rap2hpoutre/laravel-log-viewer": "^2.0",
