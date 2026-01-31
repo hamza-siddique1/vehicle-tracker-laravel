@@ -468,16 +468,30 @@ class VehicleController extends Controller
 
         $auction_lot = Vehicle::whereNotNull('auction_lot')->pluck('auction_lot')->toArray();
         $purchase_lot = Vehicle::whereNotNull('purchase_lot')->pluck('purchase_lot')->toArray();
+        $vehicles_vins = Vehicle::pluck('vin')->toArray();
 
         $vehicles_not_found = [];
 
         $updated_vehicles = 0;
+        $vehicle_lot_update_count = 0;
         $start_row = $request->start;
         $end_row = $request->end;
         foreach ($data as $index => $row) {
             //Skip empty lines or lines with fewer columns than required
             if (count($row) < count($requiredColumns)) {
                 continue;
+            }
+            
+            $hasData = false;
+            foreach ($row as $cell) {
+                if (trim($cell) !== '') {
+                    $hasData = true;
+                    break;
+                }
+            }
+            
+            if (!$hasData) {
+                continue; // Skip completely empty rows
             }
 
             if ($start_row == 0 && $end_row == 0) {
@@ -493,38 +507,65 @@ class VehicleController extends Controller
             $lot = $row[$positions[$requiredColumns['lot']]];
             $lot = preg_replace('/\s+/', '', trim($lot));
 
-            if (in_array($lot, $auction_lot) || in_array($lot, $purchase_lot)) {
-                $updated_vehicles++;
-                $vehicle = Vehicle::where('auction_lot', $lot)->orWhere('purchase_lot', $lot)->first();
-                VehicleMetas::updateOrCreate(
-                    ['vehicle_id' => $vehicle->id, 'meta_key' => 'sale_date'],
-                    [
-                        'meta_value' => Carbon::parse($row[$positions[$requiredColumns['sale_date']]])->format('Y-m-d'), //sale_date
-                    ]
-                );
-                VehicleMetas::updateOrCreate(
-                    ['vehicle_id' => $vehicle->id, 'meta_key' => 'sale_price'],
-                    [
-                        'meta_value' => $row[$positions[$requiredColumns['sale_price']]] == "" ? 0 : $row[$positions[$requiredColumns['sale_price']]], //sale_price
-                    ]
-                );
-                VehicleMetas::updateOrCreate(
-                    ['vehicle_id' => $vehicle->id, 'meta_key' => 'status'],
-                    [
-                        'meta_value' => 'SOLD', //sale_price
-                    ]
-                );
-            } else {
-                $vehicles_not_found[] = ['lot' => $lot];
+            $vin = trim($row[18]);
+            $vin = preg_replace('/\s+/', '', $vin);
+        
+            $vehicle = null;
+
+            if ($vin !== "" && in_array($vin, $vehicles_vins)) {
+                $vehicle = Vehicle::where('vin', $vin)->first();
             }
 
+            if (!$vehicle && $lot !== "") {
+                if (in_array($lot, $auction_lot) || in_array($lot, $purchase_lot)) {
+                    $vehicle = Vehicle::where('auction_lot', $lot)
+                        ->orWhere('purchase_lot', $lot)
+                        ->first();
+                }
+            }
+
+            if (!$vehicle) {
+                $vehicles_not_found[] = ['lot' => $lot, 'vin' => $vin];
+                continue;
+            }
+
+            $vinMatches = ($vehicle->vin === $vin);
+            $lotMatches = ($vehicle->auction_lot === $lot || $vehicle->purchase_lot === $lot);
+
+            if ($vinMatches && !$lotMatches) {
+                $vehicle->auction_lot = $lot;
+                $vehicle->save();
+                $vehicle_lot_update_count++;
+            }
+
+            $updated_vehicles++;
+                
+            VehicleMetas::updateOrCreate(
+                ['vehicle_id' => $vehicle->id, 'meta_key' => 'sale_date'],
+                [
+                    'meta_value' => Carbon::parse($row[$positions[$requiredColumns['sale_date']]])->format('Y-m-d'),
+                ]
+            );
+
+            VehicleMetas::updateOrCreate(
+                ['vehicle_id' => $vehicle->id, 'meta_key' => 'sale_price'],
+                [
+                    'meta_value' => $row[$positions[$requiredColumns['sale_price']]] == "" ? 0 : $row[$positions[$requiredColumns['sale_price']]], 
+                ]
+            );
+
+            VehicleMetas::updateOrCreate(
+                ['vehicle_id' => $vehicle->id, 'meta_key' => 'status'],
+                [
+                    'meta_value' => 'SOLD',
+                ]
+            );
         }
 
-        $msg = sprintf("0 new vehicles inserted, %d updated", $updated_vehicles);
+        $msg = sprintf("%d vehicle(s) updated (%d lot number(s) updated)", $updated_vehicles, $vehicle_lot_update_count);
         Session::flash('success', $msg);
 
         return view('pages.vehicle.sold.upload')->with('vehicles_not_found', $vehicles_not_found);
-
     }
 
 
