@@ -61,8 +61,8 @@
                             <label class="form-label">Current Location</label>
                             <select name="location" class="form-control">
                                 <option value="-1">Select </option>
-                                <option value="Newburgh">NEWBURGH</option>
-                                <option value="Paterson">PATERSON</option>
+                                <option value="NY - NEWBURGH">NEWBURGH</option>
+                                <option value="NJ - PATERSON">PATERSON</option>
                             </select>
                         </div>
 

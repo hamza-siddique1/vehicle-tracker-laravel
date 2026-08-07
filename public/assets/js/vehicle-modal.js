@@ -63,6 +63,7 @@ $(document).ready(function () {
 
             //We are overriding select2 library
             $('.select2').select2({
+                placeholder: "Select Location",
                 tags: true,
                 insertTag: function(data, tag) {
                     data.push(tag);

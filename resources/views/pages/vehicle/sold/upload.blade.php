@@ -21,11 +21,11 @@ $('#add').click(function() {
 <x-alert type="warning">{{ session('warning') }}</x-alert>
 @endif
 
-<h1 class="h3 mb-3">Add New File </h1>
+<h1 class="h3 mb-3">Step 3: Upload Sold Vehicles CSV</h1>
 
 <div class="row">
 
-    <div class="col">
+    <div class="col-6">
         <div class="card">
             <div class="card-body">
                 <form method="post" action="{{ route('sold.copart') }}" enctype="multipart/form-data">
@@ -33,7 +33,7 @@ $('#add').click(function() {
 
                     <div class="form-group">
                         <div class="mb-3">
-                            <label class="form-label w-100">Copart</label>
+							<img src="{{ asset('assets/img/copart.webp') }}" alt="My Image" width="180" style="padding-bottom: 25px;"><br>
                             <input type="file" name="csv_file" required>
                         </div>
                     </div>
@@ -55,7 +55,7 @@ $('#add').click(function() {
                     </div>
 
                     <div class="form-group">
-                        <button type="submit" id="add" class="btn btn-lg btn-primary">Add New File
+                        <button type="submit" id="add" class="btn btn-lg btn-primary"><i class="align-middle" data-feather="upload"></i> Upload File
                         </button>
                     </div>
 

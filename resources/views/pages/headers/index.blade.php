@@ -64,7 +64,7 @@
         <x-alert type="success">{{ session('success') }}</x-alert>
     @endif
     <div class="row">
-        <div class="col-12">
+        <div class="col-6">
             <div class="card">
                 <div class="card-body">
                     <form method="post" action="{{ route('field.mapping') }}" enctype="multipart/form-data">
@@ -72,28 +72,25 @@
                         @csrf
 
                         <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-12">
 
                                 <div class="form-group">
-                                    <label class="form-label" for="filetype"> File Type</label>
+                                    <label class="form-label" for="filetype"> Select File Type</label>
                                     <select name="filetype" id="filetype"
                                         class="form-control form-select custom-select select2" data-toggle="select2">
-                                        <option value="-100"> Select File</option>
+                                        <option value="-100"> Choose File</option>
                                         <option value="copart_buy" @if (request()->filetype == 'copart_buy') selected @endif>
-                                            Copart Buy
-                                            (Step 1)
+                                            Step 1 - Copart Buy
                                         </option>
                                         <option value="iaai_buy" @if (request()->filetype == 'iaai_buy') selected @endif>
-                                            IAAI Buy v1 (Step 1)
+                                            Step 1 - IAAI Buy
                                         </option>
 
                                         <option value="copart_inventory" @if (request()->filetype == 'copart_inventory') selected @endif>
-                                            Copart
-                                            Inventory (Step 2)
+                                            Step 2 - Inventory 
                                         </option>
                                         <option value="copart_sale" @if (request()->filetype == 'copart_sale') selected @endif>
-                                            Copart Sale
-                                            (Step 3)
+                                            Step 3 - Sold 
                                         </option>
                                     </select>
                                 </div>
@@ -104,10 +101,10 @@
 
                         <div class="row">
 
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 <div class="form-group">
                                     <div class="mb-3">
-                                        <label class="form-label w-100">CSV File</label>
+                                        <label class="form-label w-100">Upload CSV File</label>
                                         <input type="file" name="csv_file" required>
                                     </div>
                                 </div>

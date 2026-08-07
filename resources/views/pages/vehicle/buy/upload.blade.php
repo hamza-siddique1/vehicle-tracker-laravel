@@ -26,15 +26,12 @@
 
 
     <h1 class="h3 mb-3">Step 1: Upload Purchased Vehicles CSV</h1>
-
     <div class="row">
-
-        <div class="col">
+        <div class="col-lg-6 col-md-3">
             <div class="card">
                 <div class="card-body">
                     <form method="post" action="{{ route('buy.copart') }}" enctype="multipart/form-data">
                         @csrf
-
                         <div class="form-group">
                             <div class="mb-3">
                                 <img src="{{ asset('assets/img/copart.webp') }}" alt="My Image" width="180"
@@ -42,25 +39,16 @@
                                 <input type="file" name="csv_file" required>
                             </div>
                         </div>
-
                         <div class="form-group">
                             <button type="submit" class="btn btn-lg btn-primary add-btn"><i class="align-middle"
                                     data-feather="upload"></i> Upload Copart File
                             </button>
                         </div>
-
-
                     </form>
                 </div>
             </div>
         </div>
-
-
-    </div>
-
-    <div class="row">
-
-        <div class="col">
+        <div class="col-lg-6 col-md-3">
             <div class="card">
                 <div class="card-body">
                     <form method="post" action="{{ route('buy.iaai') }}" enctype="multipart/form-data">
@@ -79,15 +67,11 @@
                                     data-feather="upload"></i> Upload IAA File
                             </button>
                         </div>
-
-
                     </form>
                 </div>
             </div>
         </div>
-
     </div>
-
     <div id="loader" class="row text-center d-none">
         <div class="col-12">
             <div class="card">
@@ -104,8 +88,6 @@
                             <span class="sr-only">Loading...</span>
                         </div>
                     </div>
-
-
                 </div>
             </div>
         </div>

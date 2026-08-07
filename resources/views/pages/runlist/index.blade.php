@@ -62,7 +62,7 @@
             $.each(runLists, function(index, vehicle) {
                 var row = '<tr>' +
                     '<td>' + vehicle.item_number + '</td>' +
-                    '<td>' + vehicle.lot_number + '</td>' +
+					'<td><a href="https://www.copart.com/lot/' + vehicle.lot_number + '" target="_blank">' + vehicle.lot_number + '</a></td>' +
                     '<td>' + vehicle.claim_number + '</td>' +
                     '<td>' + vehicle.description + '</td>' +
                     '<td>' + vehicle.number_of_runs + '</td>' +
@@ -185,7 +185,7 @@
                         </div>
                         <div class="row dt-row">
                             <div class="col-sm-12">
-                                <table id="runs-table" class="table table-striped dataTable no-footer dtr-inline"
+                                <table id="runs-table" class="table table-striped dataTable table-hover no-footer dtr-inline"
                                     style="width: 100%;">
                                     <thead>
                                         <tr>
