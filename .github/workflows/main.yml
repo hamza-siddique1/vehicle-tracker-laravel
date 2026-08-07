@@ -12,7 +12,7 @@ jobs:
         uses: actions/checkout@v4
 
       # Deploy to the first server
-      - name: 📂 Sync files to Mindfully Staging
+      - name: 📂 Sync files
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
