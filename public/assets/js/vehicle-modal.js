@@ -74,7 +74,6 @@ $(document).ready(function () {
             $('.daterange').each(function(index) {
                 startDate = $(this).val();
 
-                console.log(startDate);
                 $(this).daterangepicker({
                     singleDatePicker: true,
                     showDropdowns: true,
@@ -123,8 +122,6 @@ $(document).ready(function () {
                         'error'
                     );
                     console.log(response.message);
-
-
                 }
 
 
@@ -146,5 +143,10 @@ $(document).ready(function () {
 
             }
         });
+    });
+
+    $('#create-ndtc-btn').on('click', function() {
+        const vehicleId = $('input[name="id"]').val();
+        window.location.href = '/ndtc/orders/create/' + vehicleId;
     });
 });
