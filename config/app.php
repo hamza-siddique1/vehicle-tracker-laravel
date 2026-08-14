@@ -166,7 +166,6 @@ return [
          * Package Service Providers...
          */
         App\Providers\FortifyServiceProvider::class,
-        Rap2hpoutre\LaravelLogViewer\LaravelLogViewerServiceProvider::class,
         Lab404\Impersonate\ImpersonateServiceProvider::class,
         Barryvdh\DomPDF\ServiceProvider::class,
 
