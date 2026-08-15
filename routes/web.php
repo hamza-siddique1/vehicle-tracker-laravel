@@ -13,11 +13,11 @@ use App\Http\Controllers\VehicleController;
 use App\Http\Controllers\VinOcrController;
 use App\Models\Vehicle;
 use App\Models\VehicleMetas;
-use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Route;
-use Rap2hpoutre\LaravelLogViewer\LogViewerController;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Session;
+use Rap2hpoutre\LaravelLogViewer\LogViewerController;
 
 /*
 |--------------------------------------------------------------------------

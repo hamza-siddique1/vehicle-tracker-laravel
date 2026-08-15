@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('ndtc_rejection_history', function (Blueprint $table) {
+        Schema::create('ndtc_rejection_histories', function (Blueprint $table) {
             $table->id();
 
             // ── RELATIONSHIP ──────────────────────────────────────

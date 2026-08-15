@@ -99,25 +99,40 @@
     // Parse description → year / make / model (also done in JS)
     $descParts  = explode(' ', trim($vehicle->description), 3);
     $parsedYear = $descParts[0] ?? '';
+
+
+    // ── TEST DEFAULTS ─────────────────────────────────────────
+    // Remove this entire block before going to production
+    $testDefaults = app()->environment('local') ? [
+        'title_number'       => 'NY123456789',
+        'weight'             => '4500',
+        'odometer_reading'             => '4200',
+        'body_style'         => '4W',
+        'odometer_date'      => '2024-01-18',
+        'transfer_date'      => '2024-01-18',
+        'disposing_address1' => '123 Auction Drive',
+        'disposing_city'     => 'Linden',
+        'disposing_state'    => 'NJ',
+        'disposing_zip'      => '07036',
+    ] : [];
+
+    // Helper — checks old() first, then testDefaults, then your DB value
+    $val = fn($field, $dbValue = null) =>
+        old($field, $testDefaults[$field] ?? $dbValue ?? '');
 @endphp
+
 
 @section('content')
     <h1 class="h3 mb-3">Create NDTC Order</h1>
-
-    {{-- Alerts --}}
-    @if(session('error'))
-        <x-alert type="danger">{{ session('error') }}</x-alert>
-    @endif
-
     @if ($errors->any())
-        <x-alert type="danger">
-            Please fix the following errors before submitting:
+        <div class="alert alert-danger">
+            <strong>Please fix the following errors:</strong>
             <ul class="mb-0 mt-1">
                 @foreach ($errors->all() as $error)
                     <li>{{ $error }}</li>
                 @endforeach
             </ul>
-        </x-alert>
+        </div>
     @endif
 
     {{-- VIN Banner --}}
@@ -263,7 +278,6 @@
                                 name="vehicle_class">
                             <option value="CARS_AND_TRUCKS" selected>Cars &amp; Trucks</option>
                             <option value="TRUCKS">Trucks</option>
-                            <option value="MOTORCYCLES">Motorcycles</option>
                             <option value="BUSES">Buses</option>
                             <option value="TRAILERS_AND_SEMI_TRAILERS">Trailers &amp; Semi-Trailers</option>
                             <option value="TRAVEL_TRAILERS">Travel Trailers</option>
@@ -289,7 +303,7 @@
                             <optgroup label="Common">
                                 <option value="SD">SD — Sedan</option>
                                 <option value="4W">4W — SUV / 4DR Wagon</option>
-                                <option value="UT">UT — 2DR Sport Utility</option>
+                                <option selected value="UT">UT — 2DR Sport Utility</option>
                                 <option value="CP">CP — Coupe</option>
                                 <option value="CV">CV — Convertible</option>
                                 <option value="HB">HB — Hatchback</option>
@@ -347,7 +361,7 @@
                             <input type="number"
                                    class="form-control @error('weight') is-invalid @enderror"
                                    name="weight"
-                                   value="{{ old('weight') }}"
+                                   value="{{ $val('weight') }}"
                                    placeholder="e.g. 4200"
                                    min="100" max="99999">
                             <div class="input-group-append">
@@ -385,7 +399,7 @@
                         <input type="text"
                                class="form-control @error('title_number') is-invalid @enderror"
                                name="title_number"
-                               value="{{ old('title_number') }}"
+                               value="{{ $val('title_number') }}"
                                placeholder="Enter exactly as printed on title">
                         @error('title_number')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -492,7 +506,7 @@
                             <input type="number"
                                    class="form-control @error('odometer_reading') is-invalid @enderror"
                                    name="odometer_reading"
-                                   value="{{ old('odometer_reading', $odometer) }}"
+                                   value="{{ $val('odometer_reading', $odometer) }}"
                                    min="0">
                             <div class="input-group-append">
                                 <span class="input-group-text">MI</span>
@@ -585,7 +599,7 @@
                         <input type="text"
                                class="form-control @error('disposing_address1') is-invalid @enderror"
                                name="disposing_address1"
-                               value="{{ old('disposing_address1') }}"
+                               value="{{ $val('disposing_address1') }}"
                                placeholder="Street address of auction location">
                         @error('disposing_address1')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -614,7 +628,7 @@
                         <input type="text"
                                class="form-control @error('disposing_city') is-invalid @enderror"
                                name="disposing_city"
-                               value="{{ old('disposing_city') }}">
+                               value="{{ $val('disposing_city') }}">
                         @error('disposing_city')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -627,7 +641,7 @@
                                 name="disposing_state">
                             <option value="">-- State --</option>
                             @foreach(['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'] as $state)
-                                <option value="{{ $state }}" {{ old('disposing_state') == $state ? 'selected' : '' }}>
+                                <option value="{{ $state }}" {{ $val('disposing_state') == $state ? 'selected' : '' }}>
                                     {{ $state }}
                                 </option>
                             @endforeach
@@ -643,7 +657,7 @@
                         <input type="text"
                                class="form-control @error('disposing_zip') is-invalid @enderror"
                                name="disposing_zip"
-                               value="{{ old('disposing_zip') }}"
+                               value="{{ $val('disposing_zip') }}"
                                placeholder="00000"
                                maxlength="10">
                         @error('disposing_zip')
