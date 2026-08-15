@@ -105,7 +105,7 @@ Route::group(['middleware' => ['auth']], function () {
         ['middleware' => 'admin',
         ],
         function () {
-            Route::get('logs', [LogViewerController::class, 'index']);
+            //Route::get('logs', [LogViewerController::class, 'index']);
             Route::post('/process-csv', [CSVHeaderController::class,'processCsv'])->name('process.csv');
 
             Route::post('/field-mapping/save', [CSVHeaderController::class,'saveFieldMapping'])->name('field.mapping.save');

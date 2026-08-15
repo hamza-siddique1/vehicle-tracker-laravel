@@ -2,7 +2,7 @@
 
 @extends('layouts.app')
 
-@section('title', 'Create NDTC Order')
+@section('title', 'Create NDTC Order - Transfer No Lien')
 
 @section('styles')
     <style>
@@ -15,6 +15,7 @@
         .badge-auto    { background: #d1fae5; color: #065f46; }
         .badge-manual  { background: #fef3c7; color: #92400e; }
         .badge-empty   { background: #fee2e2; color: #991b1b; }
+        .badge-optional { background: #e5e7eb; color: #374151; }
 
         .brand-check {
             background: #f8f9fa;
@@ -81,6 +82,21 @@
             margin-top: 1.5rem;
             z-index: 100;
         }
+
+        .entity-type-badge {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            background: #e9ecef;
+        }
+
+        .help-text-block {
+            background: #f8f9fa;
+            border-left: 3px solid #3b7ddd;
+            padding: 0.5rem 1rem;
+            margin: 0.5rem 0;
+            border-radius: 4px;
+        }
     </style>
 @endsection
 
@@ -88,32 +104,70 @@
     $role = Auth()->user()->role;
 
     // ── Pull vehicle metas ────────────────────────────────────
-    // Adjust this based on how you access vehicle_metas in your app
     $metas = $vehicle->metas->pluck('meta_value', 'meta_key');
 
     $odometer      = $metas->get('odometer', '');
     $saleDate      = $metas->get('sale_date', '');
     $titleState    = $metas->get('sale_title_state', '');
     $titleType     = $metas->get('sale_title_type', 'PAPER');
+    $auctionSource = $vehicle->source ?? '';
 
-    // Parse description → year / make / model (also done in JS)
+    // Parse description → year / make / model
     $descParts  = explode(' ', trim($vehicle->description), 3);
     $parsedYear = $descParts[0] ?? '';
 
+    // Determine NCIC Make code from description
+    $makeMap = [
+        'ACURA' => 'ACUR', 'AUDI' => 'AUDI', 'BMW' => 'BMW', 'BUICK' => 'BUIC',
+        'CADILLAC' => 'CADI', 'CHEVROLET' => 'CHEV', 'CHRYSLER' => 'CHRY',
+        'DODGE' => 'DODG', 'FORD' => 'FORD', 'GMC' => 'GMC', 'HONDA' => 'HOND',
+        'HYUNDAI' => 'HYUN', 'INFINITI' => 'INFI', 'JEEP' => 'JEEP', 'KIA' => 'KIA',
+        'LEXUS' => 'LEXS', 'LINCOLN' => 'LINC', 'LAND ROVER' => 'LNDR',
+        'MAZDA' => 'MAZD', 'MERCEDES-BENZ' => 'MERZ', 'MINI' => 'MINI',
+        'MITSUBISHI' => 'MITS', 'NISSAN' => 'NISS', 'PONTIAC' => 'PONT',
+        'PORSCHE' => 'PORS', 'RAM' => 'RRAM', 'SUBARU' => 'SUBA',
+        'TOYOTA' => 'TOYT', 'VOLKSWAGEN' => 'VOLK', 'VOLVO' => 'VOLV'
+    ];
 
-    // ── TEST DEFAULTS ─────────────────────────────────────────
-    // Remove this entire block before going to production
+    $parsedMake = '';
+    $parsedModel = '';
+    if (isset($descParts[1])) {
+        $makeKey = strtoupper($descParts[1]);
+        if (isset($makeMap[$makeKey])) {
+            $parsedMake = $makeMap[$makeKey];
+            $parsedModel = $descParts[2] ?? '';
+        } elseif (isset($descParts[2])) {
+            // Check multi-word makes
+            $twoWord = strtoupper($descParts[1] . ' ' . $descParts[2]);
+            if (isset($makeMap[$twoWord])) {
+                $parsedMake = $makeMap[$twoWord];
+                $parsedModel = $descParts[3] ?? '';
+            }
+        }
+    }
+
+    // ── TEST DEFAULTS (Remove before production) ──────────────
     $testDefaults = app()->environment('local') ? [
-        'title_number'       => 'NY123456789',
-        'weight'             => '4500',
-        'odometer_reading'             => '4200',
-        'body_style'         => '4W',
-        'odometer_date'      => '2024-01-18',
-        'transfer_date'      => '2024-01-18',
-        'disposing_address1' => '123 Auction Drive',
-        'disposing_city'     => 'Linden',
-        'disposing_state'    => 'NJ',
-        'disposing_zip'      => '07036',
+        'title_number'          => 'NY123456789',
+        'weight'                => '4500',
+        'odometer_reading'      => '4200',
+        'body_style'            => '4W',
+        'odometer_date'         => '2024-01-18',
+        'transfer_date'         => '2024-01-18',
+        'disposing_address1'    => '123 Auction Drive',
+        'disposing_city'        => 'Linden',
+        'disposing_state'       => 'NJ',
+        'disposing_zip'         => '07036',
+        'issuing_state'         => 'AL',
+        'acquiring_entity_name' => 'John Doe Auto Sales',
+        'acquiring_address1'    => '456 Business Blvd',
+        'acquiring_city'        => 'Columbus',
+        'acquiring_state'       => 'OH',
+        'acquiring_zip'         => '43215',
+        'title_work_representative_first' => 'Jane',
+        'title_work_representative_last'  => 'Doe',
+        'title_work_representative_email' => 'jane.doe@company.com',
+        'title_work_representative_phone' => '555-555-5555',
     ] : [];
 
     // Helper — checks old() first, then testDefaults, then your DB value
@@ -121,9 +175,9 @@
         old($field, $testDefaults[$field] ?? $dbValue ?? '');
 @endphp
 
-
 @section('content')
-    <h1 class="h3 mb-3">Create NDTC Order</h1>
+    <h1 class="h3 mb-3">Create NDTC Order - Transfer No Lien (TNL)</h1>
+
     @if ($errors->any())
         <div class="alert alert-danger">
             <strong>Please fix the following errors:</strong>
@@ -151,10 +205,11 @@
     </div>
 
     {{-- Legend --}}
-    <div class="d-flex align-items-center gap-2 mb-3" style="gap:12px">
-        <small><span class="field-badge badge-auto">AUTO</span> Auto-filled from DB</small>
-        <small><span class="field-badge badge-manual">VERIFY</span> Please verify</small>
+    <div class="d-flex align-items-center gap-2 mb-3" style="gap:12px; flex-wrap: wrap;">
+        <small><span class="field-badge badge-auto">AUTO</span> Auto-filled from DB (read-only)</small>
+        <small><span class="field-badge badge-manual">VERIFY</span> Pre-filled but editable</small>
         <small><span class="field-badge badge-empty">REQUIRED</span> Must be entered</small>
+        <small><span class="field-badge badge-optional">OPTIONAL</span> Optional field</small>
     </div>
 
     <form action="{{ route('ndtc.orders.store', $vehicle) }}"
@@ -165,22 +220,334 @@
         {{-- Hidden fields --}}
         <input type="hidden" name="vehicle_id"          value="{{ $vehicle->id }}">
         <input type="hidden" name="transaction_type"    value="TNL">
-        <input type="hidden" name="vertical"            value="NATIONAL_RETAILER">
+        <input type="hidden" name="vertical_type"       value="NATIONAL_RETAILER">
         <input type="hidden" name="correlation_id"      value="{{ $vehicle->id }}">
 
-        {{-- ══ SECTION 1: VEHICLE INFORMATION ══════════════════════ --}}
+        {{-- ═══════════════════════════════════════════════════════════════════════ --}}
+        {{-- SECTION 1: ACQUIRING ENTITY (REQUIRED)                              --}}
+        {{-- ═══════════════════════════════════════════════════════════════════════ --}}
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="align-middle mr-2" data-feather="user-check"></i>
+                    Acquiring Entity <span class="required-note">*</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="help-text-block">
+                    <small class="text-muted">
+                        <i class="align-middle mr-1" data-feather="info"></i>
+                        The entity acquiring the vehicle. Must have an NRB Number or Entity ID.
+                        If the entity is not in the system, contact support to register them.
+                    </small>
+                </div>
+
+                {{-- Entity ID / NRB Number --}}
+                <div class="form-row">
+                    <div class="form-group col-md-4">
+                        <label>NRB Number or Entity ID <span class="required-note">*</span></label>
+                        <input type="text"
+                               class="form-control @error('acquiring_entity_id') is-invalid @enderror"
+                               name="acquiring_entity_id"
+                               value="{{ $val('acquiring_entity_id') }}"
+                               placeholder="e.g. 12345 or GUID">
+                        @error('acquiring_entity_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <small class="form-text">
+                            <span class="field-badge badge-empty">REQUIRED</span>
+                            NRB Number (numeric) or Entity ID (GUID)
+                        </small>
+                    </div>
+
+                    <div class="form-group col-md-4">
+                        <label>Entity Name <span class="required-note">*</span></label>
+                        <input type="text"
+                               class="form-control @error('acquiring_entity_name') is-invalid @enderror"
+                               name="acquiring_entity_name"
+                               value="{{ $val('acquiring_entity_name') }}"
+                               placeholder="Full entity name">
+                        @error('acquiring_entity_name')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <small class="form-text">
+                            <span class="field-badge badge-manual">VERIFY</span>
+                            Must match NRB record
+                        </small>
+                    </div>
+                </div>
+
+                {{-- Physical Address --}}
+                <div class="section-label">Physical Address</div>
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label>Address Line 1 <span class="required-note">*</span></label>
+                        <input type="text"
+                               class="form-control @error('acquiring_address1') is-invalid @enderror"
+                               name="acquiring_address1"
+                               value="{{ $val('acquiring_address1') }}"
+                               placeholder="Street address">
+                        @error('acquiring_address1')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="form-group col-md-6">
+                        <label>Address Line 2 <span class="badge badge-optional">OPTIONAL</span></label>
+                        <input type="text"
+                               class="form-control"
+                               name="acquiring_address2"
+                               value="{{ old('acquiring_address2') }}"
+                               placeholder="Suite, unit, etc.">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group col-md-4">
+                        <label>City <span class="required-note">*</span></label>
+                        <input type="text"
+                               class="form-control @error('acquiring_city') is-invalid @enderror"
+                               name="acquiring_city"
+                               value="{{ $val('acquiring_city') }}">
+                        @error('acquiring_city')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="form-group col-md-3">
+                        <label>State <span class="required-note">*</span></label>
+                        <select class="form-control @error('acquiring_state') is-invalid @enderror"
+                                name="acquiring_state">
+                            <option value="">-- Select --</option>
+                            @foreach(['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'] as $state)
+                                <option value="{{ $state }}" {{ $val('acquiring_state') == $state ? 'selected' : '' }}>
+                                    {{ $state }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('acquiring_state')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="form-group col-md-3">
+                        <label>ZIP Code <span class="required-note">*</span></label>
+                        <input type="text"
+                               class="form-control @error('acquiring_zip') is-invalid @enderror"
+                               name="acquiring_zip"
+                               value="{{ $val('acquiring_zip') }}"
+                               placeholder="5 digits"
+                               maxlength="5">
+                        @error('acquiring_zip')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+
+                {{-- Mailing Address (Optional) --}}
+                <div class="mt-3">
+                    <div class="d-flex align-items-center mb-2">
+                        <label class="mb-0 mr-3 font-weight-bold">Mailing Address</label>
+                        <span class="field-badge badge-optional">OPTIONAL</span>
+                        <small class="text-muted ml-2">Check if different from physical address</small>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label>Address Line 1</label>
+                            <input type="text"
+                                   class="form-control"
+                                   name="acquiring_mailing_address1"
+                                   value="{{ old('acquiring_mailing_address1') }}"
+                                   placeholder="Mailing address">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label>Address Line 2</label>
+                            <input type="text"
+                                   class="form-control"
+                                   name="acquiring_mailing_address2"
+                                   value="{{ old('acquiring_mailing_address2') }}">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-4">
+                            <label>City</label>
+                            <input type="text"
+                                   class="form-control"
+                                   name="acquiring_mailing_city"
+                                   value="{{ old('acquiring_mailing_city') }}">
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label>State</label>
+                            <select class="form-control" name="acquiring_mailing_state">
+                                <option value="">-- Select --</option>
+                                @foreach(['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'] as $state)
+                                    <option value="{{ $state }}" {{ old('acquiring_mailing_state') == $state ? 'selected' : '' }}>
+                                        {{ $state }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label>ZIP Code</label>
+                            <input type="text"
+                                   class="form-control"
+                                   name="acquiring_mailing_zip"
+                                   value="{{ old('acquiring_mailing_zip') }}"
+                                   maxlength="5">
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label>County</label>
+                            <input type="text"
+                                   class="form-control"
+                                   name="acquiring_mailing_county"
+                                   value="{{ old('acquiring_mailing_county') }}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- ═══════════════════════════════════════════════════════════════════════ --}}
+        {{-- SECTION 2: TITLE WORK ENTITY (REQUIRED)                             --}}
+        {{-- ═══════════════════════════════════════════════════════════════════════ --}}
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="align-middle mr-2" data-feather="briefcase"></i>
+                    Title Work Entity <span class="required-note">*</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="help-text-block">
+                    <small class="text-muted">
+                        <i class="align-middle mr-1" data-feather="info"></i>
+                        The entity performing the title work. Must be registered with CHAMP.
+                    </small>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group col-md-4">
+                        <label>NRB Number or Entity ID <span class="required-note">*</span></label>
+                        <input type="text"
+                               class="form-control @error('title_work_entity_id') is-invalid @enderror"
+                               name="title_work_entity_id"
+                               value="{{ $val('title_work_entity_id') }}"
+                               placeholder="e.g. 12345 or GUID">
+                        @error('title_work_entity_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <small class="form-text">
+                            <span class="field-badge badge-empty">REQUIRED</span>
+                            NRB Number or Entity ID
+                        </small>
+                    </div>
+                </div>
+
+                {{-- Representative --}}
+                <div class="section-label">Representative <span class="required-note">*</span></div>
+                <div class="help-text-block">
+                    <small class="text-muted">
+                        <i class="align-middle mr-1" data-feather="info"></i>
+                        <strong>Agent:</strong> Associate of the entity<br>
+                        <strong>Power of Attorney:</strong> Authorized to act on behalf of the entity
+                    </small>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group col-md-3">
+                        <label>First Name <span class="required-note">*</span></label>
+                        <input type="text"
+                               class="form-control @error('representative_first') is-invalid @enderror"
+                               name="representative_first"
+                               value="{{ $val('representative_first') }}">
+                        @error('representative_first')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="form-group col-md-3">
+                        <label>Last Name <span class="required-note">*</span></label>
+                        <input type="text"
+                               class="form-control @error('representative_last') is-invalid @enderror"
+                               name="representative_last"
+                               value="{{ $val('representative_last') }}">
+                        @error('representative_last')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="form-group col-md-3">
+                        <label>Email <span class="required-note">*</span></label>
+                        <input type="email"
+                               class="form-control @error('representative_email') is-invalid @enderror"
+                               name="representative_email"
+                               value="{{ $val('representative_email') }}"
+                               placeholder="john@company.com">
+                        @error('representative_email')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="form-group col-md-3">
+                        <label>Relationship <span class="required-note">*</span></label>
+                        <select class="form-control @error('representative_relationship') is-invalid @enderror"
+                                name="representative_relationship">
+                            <option value="AGENT" {{ old('representative_relationship') == 'AGENT' ? 'selected' : '' }}>
+                                AGENT
+                            </option>
+                            <option value="POWER_OF_ATTORNEY" {{ old('representative_relationship') == 'POWER_OF_ATTORNEY' ? 'selected' : '' }}>
+                                POWER_OF_ATTORNEY
+                            </option>
+                        </select>
+                        @error('representative_relationship')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group col-md-3">
+                        <label>Phone Number <span class="badge badge-optional">OPTIONAL</span></label>
+                        <input type="text"
+                               class="form-control"
+                               name="representative_phone"
+                               value="{{ $val('representative_phone') }}"
+                               placeholder="555-555-5555">
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label>Phone Type <span class="badge badge-optional">OPTIONAL</span></label>
+                        <select class="form-control" name="representative_phone_type">
+                            <option value="MOBILE" {{ old('representative_phone_type') == 'MOBILE' ? 'selected' : '' }}>MOBILE</option>
+                            <option value="HOME" {{ old('representative_phone_type') == 'HOME' ? 'selected' : '' }}>HOME</option>
+                            <option value="WORK" {{ old('representative_phone_type') == 'WORK' ? 'selected' : '' }}>WORK</option>
+                            <option value="OTHER" {{ old('representative_phone_type') == 'OTHER' ? 'selected' : '' }}>OTHER</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- ═══════════════════════════════════════════════════════════════════════ --}}
+        {{-- SECTION 3: VEHICLE INFORMATION (REQUIRED)                            --}}
+        {{-- ═══════════════════════════════════════════════════════════════════════ --}}
         <div class="card">
             <div class="card-header">
                 <h5 class="card-title mb-0">
                     <i class="align-middle mr-2" data-feather="truck"></i>
-                    Vehicle Information
+                    Vehicle Information <span class="required-note">*</span>
                 </h5>
             </div>
             <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="align-middle mr-1" data-feather="alert-circle"></i>
+                    Vehicle data is auto-filled from the database. To change any vehicle data,
+                    update the vehicle record first. Only the fields marked <span class="field-badge badge-manual">VERIFY</span>
+                    can be edited here for exceptional cases.
+                </div>
 
-                {{-- VIN --}}
+                {{-- VIN (Read-only) --}}
                 <div class="form-group row">
-                    <label class="col-md-3 col-form-label">
+                    <label class="col-md-2 col-form-label font-weight-bold">
                         VIN <span class="required-note">*</span>
                     </label>
                     <div class="col-sm-6">
@@ -189,86 +556,43 @@
                                name="vin"
                                value="{{ $vehicle->vin }}"
                                readonly>
-                        <small class="form-text text-muted">Auto-filled from vehicle record. Cannot be changed here.</small>
                     </div>
-                    <div class="col-sm-3 d-flex align-items-center">
-                        <span class="field-badge badge-auto">AUTO</span>
+                    <div class="col-sm-4 d-flex align-items-center">
+                        <span class="field-badge badge-auto">AUTO (Read-only)</span>
                     </div>
                 </div>
 
                 <div class="form-row">
-                    {{-- Year --}}
+                    {{-- Year (Read-only) --}}
                     <div class="form-group col-md-2">
                         <label>Year <span class="required-note">*</span></label>
                         <input type="number"
-                               class="form-control @error('year') is-invalid @enderror"
+                               class="form-control"
                                name="year"
-                               id="field-year"
-                               value="{{ old('year', $parsedYear) }}"
-                               min="1980" max="2030">
-                        @error('year')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                        <small class="form-text"><span class="field-badge badge-auto">AUTO</span></small>
+                               value="{{ $parsedYear }}"
+                               readonly>
+                        <small class="form-text"><span class="field-badge badge-auto">Read-only</span></small>
                     </div>
 
-                    {{-- Make --}}
+                    {{-- Make (Read-only) --}}
                     <div class="form-group col-md-3">
-                        <label>Make (NCIC Code) <span class="required-note">*</span></label>
-                        <select class="form-control @error('make') is-invalid @enderror"
-                                name="make"
-                                id="field-make">
-                            <option value="">-- Select Make --</option>
-                            <option value="ACUR">ACUR — Acura</option>
-                            <option value="AUDI">AUDI — Audi</option>
-                            <option value="BMW">BMW — BMW</option>
-                            <option value="BUIC">BUIC — Buick</option>
-                            <option value="CADI">CADI — Cadillac</option>
-                            <option value="CHEV">CHEV — Chevrolet</option>
-                            <option value="CHRY">CHRY — Chrysler</option>
-                            <option value="DODG">DODG — Dodge</option>
-                            <option value="FORD">FORD — Ford</option>
-                            <option value="GMC">GMC — GMC</option>
-                            <option value="HOND">HOND — Honda</option>
-                            <option value="HYUN">HYUN — Hyundai</option>
-                            <option value="INFI">INFI — Infiniti</option>
-                            <option value="JEEP">JEEP — Jeep</option>
-                            <option value="KIA">KIA — Kia</option>
-                            <option value="LEXS">LEXS — Lexus</option>
-                            <option value="LINC">LINC — Lincoln</option>
-                            <option value="LNDR">LNDR — Land Rover</option>
-                            <option value="MAZD">MAZD — Mazda</option>
-                            <option value="MERZ">MERZ — Mercedes-Benz</option>
-                            <option value="MINI">MINI — Mini</option>
-                            <option value="MITS">MITS — Mitsubishi</option>
-                            <option value="NISS">NISS — Nissan</option>
-                            <option value="PONT">PONT — Pontiac</option>
-                            <option value="PORS">PORS — Porsche</option>
-                            <option value="RRAM">RRAM — Ram</option>
-                            <option value="SUBA">SUBA — Subaru</option>
-                            <option value="TOYT">TOYT — Toyota</option>
-                            <option value="VOLK">VOLK — Volkswagen</option>
-                            <option value="VOLV">VOLV — Volvo</option>
+                        <label>Make (NCIC) <span class="required-note">*</span></label>
+                        <select class="form-control" name="make" disabled>
+                            <option value="{{ $parsedMake }}" selected>{{ $parsedMake }}</option>
                         </select>
-                        @error('make')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                        <small class="form-text"><span class="field-badge badge-auto">AUTO</span></small>
+                        <input type="hidden" name="make" value="{{ $parsedMake }}">
+                        <small class="form-text"><span class="field-badge badge-auto">Read-only</span></small>
                     </div>
 
-                    {{-- Model --}}
+                    {{-- Model (Read-only) --}}
                     <div class="form-group col-md-4">
                         <label>Model <span class="required-note">*</span></label>
                         <input type="text"
-                               class="form-control @error('model') is-invalid @enderror"
+                               class="form-control"
                                name="model"
-                               id="field-model"
-                               value="{{ old('model') }}"
-                               placeholder="e.g. GLB 250">
-                        @error('model')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                        <small class="form-text"><span class="field-badge badge-auto">AUTO</span></small>
+                               value="{{ $parsedModel }}"
+                               readonly>
+                        <small class="form-text"><span class="field-badge badge-auto">Read-only</span></small>
                     </div>
 
                     {{-- Vehicle Class --}}
@@ -276,20 +600,28 @@
                         <label>Vehicle Class <span class="required-note">*</span></label>
                         <select class="form-control @error('vehicle_class') is-invalid @enderror"
                                 name="vehicle_class">
-                            <option value="CARS_AND_TRUCKS" selected>Cars &amp; Trucks</option>
-                            <option value="TRUCKS">Trucks</option>
-                            <option value="BUSES">Buses</option>
-                            <option value="TRAILERS_AND_SEMI_TRAILERS">Trailers &amp; Semi-Trailers</option>
-                            <option value="TRAVEL_TRAILERS">Travel Trailers</option>
-                            <option value="TRAILERS">Trailers</option>
-                            <option value="ATV">ATV</option>
-                            <option value="ANTIQUE_MOTOR">Antique Motor</option>
-                            <option value="MOBILE_HOME">Mobile Home</option>
-                            <option value="FARM_TRUCKS">Farm Trucks</option>
+                            <option value="CARS_AND_TRUCKS" {{ old('vehicle_class', 'CARS_AND_TRUCKS') == 'CARS_AND_TRUCKS' ? 'selected' : '' }}>Cars &amp; Trucks</option>
+                            <option value="TRUCKS" {{ old('vehicle_class') == 'TRUCKS' ? 'selected' : '' }}>Trucks</option>
+                            <option value="BUSES" {{ old('vehicle_class') == 'BUSES' ? 'selected' : '' }}>Buses</option>
+                            <option value="TRAILERS_AND_SEMI_TRAILERS" {{ old('vehicle_class') == 'TRAILERS_AND_SEMI_TRAILERS' ? 'selected' : '' }}>Trailers &amp; Semi-Trailers</option>
+                            <option value="TRAVEL_TRAILERS" {{ old('vehicle_class') == 'TRAVEL_TRAILERS' ? 'selected' : '' }}>Travel Trailers</option>
+                            <option value="TRAILERS" {{ old('vehicle_class') == 'TRAILERS' ? 'selected' : '' }}>Trailers</option>
+                            <option value="ATV" {{ old('vehicle_class') == 'ATV' ? 'selected' : '' }}>ATV</option>
+                            <option value="ANTIQUE_MOTOR" {{ old('vehicle_class') == 'ANTIQUE_MOTOR' ? 'selected' : '' }}>Antique Motor</option>
+                            <option value="MOBILE_HOME" {{ old('vehicle_class') == 'MOBILE_HOME' ? 'selected' : '' }}>Mobile Home</option>
+                            <option value="FARM_TRUCKS" {{ old('vehicle_class') == 'FARM_TRUCKS' ? 'selected' : '' }}>Farm Trucks</option>
+                            <option value="MOBILE_EQUIPMENT" {{ old('vehicle_class') == 'MOBILE_EQUIPMENT' ? 'selected' : '' }}>Mobile Equipment</option>
+                            <option value="MOTORCYCLES" {{ old('vehicle_class') == 'MOTORCYCLES' ? 'selected' : '' }}>Motorcycles</option>
+                            <option value="TAXI_CABS" {{ old('vehicle_class') == 'TAXI_CABS' ? 'selected' : '' }}>Taxi Cabs</option>
+                            <option value="PUBLIC_SERVICE" {{ old('vehicle_class') == 'PUBLIC_SERVICE' ? 'selected' : '' }}>Public Service</option>
+                            <option value="COUNTY_GOVERNMENT" {{ old('vehicle_class') == 'COUNTY_GOVERNMENT' ? 'selected' : '' }}>County Government</option>
+                            <option value="STATE_GOVERNMENT" {{ old('vehicle_class') == 'STATE_GOVERNMENT' ? 'selected' : '' }}>State Government</option>
+                            <option value="CITY_GOVERNMENT" {{ old('vehicle_class') == 'CITY_GOVERNMENT' ? 'selected' : '' }}>City Government</option>
                         </select>
                         @error('vehicle_class')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
+                        <small class="form-text"><span class="field-badge badge-manual">VERIFY</span> Select appropriate class</small>
                     </div>
                 </div>
 
@@ -301,34 +633,35 @@
                                 name="body_style">
                             <option value="">-- Select --</option>
                             <optgroup label="Common">
-                                <option value="SD">SD — Sedan</option>
-                                <option value="4W">4W — SUV / 4DR Wagon</option>
-                                <option selected value="UT">UT — 2DR Sport Utility</option>
-                                <option value="CP">CP — Coupe</option>
-                                <option value="CV">CV — Convertible</option>
-                                <option value="HB">HB — Hatchback</option>
-                                <option value="SW">SW — Station Wagon</option>
-                                <option value="PK">PK — Pickup</option>
-                                <option value="PV">PV — Passenger Van</option>
-                                <option value="CG">CG — Cargo Van</option>
-                                <option value="TK">TK — Truck</option>
+                                <option value="SD" {{ $val('body_style') == 'SD' ? 'selected' : '' }}>SD — Sedan</option>
+                                <option value="4W" {{ $val('body_style') == '4W' ? 'selected' : '' }}>4W — SUV / 4DR Wagon</option>
+                                <option value="UT" {{ $val('body_style') == 'UT' ? 'selected' : '' }}>UT — 2DR Sport Utility</option>
+                                <option value="CP" {{ $val('body_style') == 'CP' ? 'selected' : '' }}>CP — Coupe</option>
+                                <option value="CV" {{ $val('body_style') == 'CV' ? 'selected' : '' }}>CV — Convertible</option>
+                                <option value="HB" {{ $val('body_style') == 'HB' ? 'selected' : '' }}>HB — Hatchback</option>
+                                <option value="SW" {{ $val('body_style') == 'SW' ? 'selected' : '' }}>SW — Station Wagon</option>
+                                <option value="PK" {{ $val('body_style') == 'PK' ? 'selected' : '' }}>PK — Pickup</option>
+                                <option value="PV" {{ $val('body_style') == 'PV' ? 'selected' : '' }}>PV — Passenger Van</option>
+                                <option value="CG" {{ $val('body_style') == 'CG' ? 'selected' : '' }}>CG — Cargo Van</option>
+                                <option value="TK" {{ $val('body_style') == 'TK' ? 'selected' : '' }}>TK — Truck</option>
                             </optgroup>
                             <optgroup label="Other">
-                                <option value="2D">2D — 2 Door Sedan</option>
-                                <option value="2H">2H — Hatchback 2DR</option>
-                                <option value="2T">2T — Hardtop 2DR</option>
-                                <option value="2W">2W — Wagon 2DR</option>
-                                <option value="3C">3C — Extended Cab</option>
-                                <option value="4C">4C — 4DR Ext Cab</option>
-                                <option value="4T">4T — Hardtop 4DR</option>
-                                <option value="MC">MC — Motorcycle</option>
-                                <option value="MH">MH — Motor Home</option>
-                                <option value="TL">TL — Trailer</option>
+                                <option value="2D" {{ $val('body_style') == '2D' ? 'selected' : '' }}>2D — 2 Door Sedan</option>
+                                <option value="2H" {{ $val('body_style') == '2H' ? 'selected' : '' }}>2H — Hatchback 2DR</option>
+                                <option value="2T" {{ $val('body_style') == '2T' ? 'selected' : '' }}>2T — Hardtop 2DR</option>
+                                <option value="2W" {{ $val('body_style') == '2W' ? 'selected' : '' }}>2W — Wagon 2DR</option>
+                                <option value="3C" {{ $val('body_style') == '3C' ? 'selected' : '' }}>3C — Extended Cab</option>
+                                <option value="4C" {{ $val('body_style') == '4C' ? 'selected' : '' }}>4C — 4DR Ext Cab</option>
+                                <option value="4T" {{ $val('body_style') == '4T' ? 'selected' : '' }}>4T — Hardtop 4DR</option>
+                                <option value="MC" {{ $val('body_style') == 'MC' ? 'selected' : '' }}>MC — Motorcycle</option>
+                                <option value="MH" {{ $val('body_style') == 'MH' ? 'selected' : '' }}>MH — Motor Home</option>
+                                <option value="TL" {{ $val('body_style') == 'TL' ? 'selected' : '' }}>TL — Trailer</option>
                             </optgroup>
                         </select>
                         @error('body_style')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
+                        <small class="form-text"><span class="field-badge badge-manual">VERIFY</span> From vehicle data</small>
                     </div>
 
                     {{-- Fuel Type --}}
@@ -336,22 +669,23 @@
                         <label>Fuel Type <span class="required-note">*</span></label>
                         <select class="form-control @error('fuel_type') is-invalid @enderror"
                                 name="fuel_type">
-                            <option value="GAS" selected>GAS — Gasoline</option>
-                            <option value="DIESEL">DIESEL — Diesel</option>
-                            <option value="ELECTRIC">ELECTRIC — Electric</option>
-                            <option value="ELECTRIC_AND_GAS_HYBRID">HYBRID — Electric &amp; Gas</option>
-                            <option value="ELECTRIC_AND_DIESEL_HYBRID">HYBRID — Electric &amp; Diesel</option>
-                            <option value="FLEXIBLE">FLEXIBLE — Flex Fuel</option>
-                            <option value="ETHANOL">ETHANOL</option>
-                            <option value="PROPANE">PROPANE</option>
-                            <option value="COMPRESSED_NATURAL_GAS">CNG</option>
-                            <option value="LIQUID_NATURAL_GAS">LNG</option>
-                            <option value="HYDROGEN_FUEL_CELL">HYDROGEN</option>
-                            <option value="UNKNOWN">UNKNOWN</option>
+                            <option value="GAS" {{ old('fuel_type', 'GAS') == 'GAS' ? 'selected' : '' }}>GAS — Gasoline</option>
+                            <option value="DIESEL" {{ old('fuel_type') == 'DIESEL' ? 'selected' : '' }}>DIESEL — Diesel</option>
+                            <option value="ELECTRIC" {{ old('fuel_type') == 'ELECTRIC' ? 'selected' : '' }}>ELECTRIC — Electric</option>
+                            <option value="ELECTRIC_AND_GAS_HYBRID" {{ old('fuel_type') == 'ELECTRIC_AND_GAS_HYBRID' ? 'selected' : '' }}>HYBRID — Electric &amp; Gas</option>
+                            <option value="ELECTRIC_AND_DIESEL_HYBRID" {{ old('fuel_type') == 'ELECTRIC_AND_DIESEL_HYBRID' ? 'selected' : '' }}>HYBRID — Electric &amp; Diesel</option>
+                            <option value="FLEXIBLE" {{ old('fuel_type') == 'FLEXIBLE' ? 'selected' : '' }}>FLEXIBLE — Flex Fuel</option>
+                            <option value="ETHANOL" {{ old('fuel_type') == 'ETHANOL' ? 'selected' : '' }}>ETHANOL</option>
+                            <option value="PROPANE" {{ old('fuel_type') == 'PROPANE' ? 'selected' : '' }}>PROPANE</option>
+                            <option value="COMPRESSED_NATURAL_GAS" {{ old('fuel_type') == 'COMPRESSED_NATURAL_GAS' ? 'selected' : '' }}>CNG</option>
+                            <option value="LIQUID_NATURAL_GAS" {{ old('fuel_type') == 'LIQUID_NATURAL_GAS' ? 'selected' : '' }}>LNG</option>
+                            <option value="HYDROGEN_FUEL_CELL" {{ old('fuel_type') == 'HYDROGEN_FUEL_CELL' ? 'selected' : '' }}>HYDROGEN</option>
+                            <option value="UNKNOWN" {{ old('fuel_type') == 'UNKNOWN' ? 'selected' : '' }}>UNKNOWN</option>
                         </select>
                         @error('fuel_type')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
+                        <small class="form-text"><span class="field-badge badge-manual">VERIFY</span> From vehicle data</small>
                     </div>
 
                     {{-- Weight --}}
@@ -371,25 +705,27 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
+                        <small class="form-text"><span class="field-badge badge-manual">VERIFY</span> From vehicle data</small>
                     </div>
                 </div>
-
             </div>
         </div>
 
-        {{-- ══ SECTION 2: EXISTING TITLE ════════════════════════════ --}}
+        {{-- ═══════════════════════════════════════════════════════════════════════ --}}
+        {{-- SECTION 4: EXISTING TITLE (REQUIRED)                                --}}
+        {{-- ═══════════════════════════════════════════════════════════════════════ --}}
         <div class="card">
             <div class="card-header">
                 <h5 class="card-title mb-0">
                     <i class="align-middle mr-2" data-feather="file-text"></i>
-                    Existing Title Information
+                    Existing Title Information <span class="required-note">*</span>
                 </h5>
             </div>
             <div class="card-body">
-
-                <div class="alert alert-info">
-                    <i class="align-middle mr-1" data-feather="info"></i>
-                    The title number must exactly match what is in NMVTIS. Check the physical paper title in hand.
+                <div class="alert alert-warning">
+                    <i class="align-middle mr-1" data-feather="alert-triangle"></i>
+                    <strong>Important:</strong> The title number must exactly match what is in NMVTIS.
+                    Verify against the physical paper title in hand.
                 </div>
 
                 <div class="form-row">
@@ -417,8 +753,7 @@
                                 name="issuing_state">
                             <option value="">-- Select State --</option>
                             @foreach(['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'] as $state)
-                                <option value="{{ $state }}"
-                                    {{ old('issuing_state', $titleState) == $state ? 'selected' : '' }}>
+                                <option value="{{ $state }}" {{ $val('issuing_state', $titleState) == $state ? 'selected' : '' }}>
                                     {{ $state }}
                                 </option>
                             @endforeach
@@ -437,13 +772,11 @@
                         <label>Title Type <span class="required-note">*</span></label>
                         <select class="form-control @error('title_type') is-invalid @enderror"
                                 name="title_type">
-                            <option value="PAPER"
-                                {{ old('title_type', $titleType) == 'PAPER' ? 'selected' : '' }}>
-                                Paper
+                            <option value="PAPER" {{ old('title_type', $titleType) == 'PAPER' ? 'selected' : '' }}>
+                                PAPER
                             </option>
-                            <option value="ELECTRONIC"
-                                {{ old('title_type', $titleType) == 'ELECTRONIC' ? 'selected' : '' }}>
-                                Electronic
+                            <option value="DIGITAL" {{ old('title_type', $titleType) == 'DIGITAL' ? 'selected' : '' }}>
+                                DIGITAL
                             </option>
                         </select>
                         @error('title_type')
@@ -454,51 +787,153 @@
                             From <code>sale_title_type</code>
                         </small>
                     </div>
+
+                    {{-- Control Number (Optional) --}}
+                    <div class="form-group col-md-3">
+                        <label>Control Number <span class="badge badge-optional">OPTIONAL</span></label>
+                        <input type="text"
+                               class="form-control"
+                               name="control_number"
+                               value="{{ old('control_number') }}"
+                               placeholder="Required if issuing state records one">
+                        <small class="form-text text-muted">Required in some states</small>
+                    </div>
                 </div>
 
                 {{-- Title Brands --}}
-                <div class="section-label">Title Brands</div>
+                <div class="section-label">Title Brands <span class="badge badge-optional">OPTIONAL</span></div>
                 <p class="text-muted small mb-2">
                     Vehicles from Copart / IAAI typically carry a Salvage brand.
                     Verify against the physical title and check all that apply.
                 </p>
                 <div class="form-row">
                     @foreach([
-                        'SALVAGE'  => ['SALVAGE',  true],
-                        'JUNK'     => ['JUNK',     false],
-                        'REBUILT'  => ['REBUILT',  false],
-                        'FLOOD'    => ['FLOOD',    false],
-                        'LEMON'    => ['LEMON LAW',false],
-                        'NONE'     => ['NONE / CLEAN', false],
-                    ] as $value => [$label, $defaultChecked])
-                        <div class="col-md-2 mb-2">
-                            <label class="brand-check {{ $defaultChecked ? 'is-checked' : '' }}"
-                                   id="brand-label-{{ strtolower($value) }}">
+                        'SALVAGE'  => 'SALVAGE',
+                        'JUNK'     => 'JUNK',
+                        'REBUILT'  => 'REBUILT',
+                        'FLOOD'    => 'FLOOD',
+                        'FIRE'     => 'FIRE',
+                        'LEMON'    => 'LEMON',
+                        'WATER_DAMAGE' => 'WATER_DAMAGE',
+                        'DISMANTLED' => 'DISMANTLED',
+                        'RECONSTRUCTED' => 'RECONSTRUCTED',
+                        'UNRECOVERED_THEFT' => 'UNRECOVERED_THEFT',
+                        'EXPORT_ONLY' => 'EXPORT_ONLY',
+                        'OWNER_RETAINED' => 'OWNER_RETAINED',
+                        'MANUFACTURER_BUY_BACK' => 'MANUFACTURER_BUY_BACK',
+                        'REPAIRED' => 'REPAIRED',
+                        'CRUSHED' => 'CRUSHED',
+                    ] as $value => $label)
+                        <div class="col-md-3 mb-2">
+                            <label class="brand-check" id="brand-label-{{ strtolower($value) }}">
                                 <input type="checkbox"
                                        name="title_brands[]"
                                        value="{{ $value }}"
                                        class="brand-checkbox"
-                                       {{ $defaultChecked ? 'checked' : '' }}>
+                                       {{ old('title_brands') && in_array($value, old('title_brands')) ? 'checked' : '' }}>
                                 <span>{{ $label }}</span>
                             </label>
                         </div>
                     @endforeach
                 </div>
 
+                {{-- Liens (Optional) --}}
+                <div class="section-label">Liens <span class="badge badge-optional">OPTIONAL</span></div>
+                <div class="help-text-block">
+                    <small class="text-muted">
+                        <i class="align-middle mr-1" data-feather="info"></i>
+                        For Transfer No Lien (TNL), the title should typically have no liens,
+                        but include them if the vehicle has an existing lien.
+                    </small>
+                </div>
+
+                <div id="liens-container">
+                    <div class="lien-entry border p-3 mb-2 rounded">
+                        <div class="form-row">
+                            <div class="form-group col-md-4">
+                                <label>Lienholder Name</label>
+                                <input type="text"
+                                       class="form-control"
+                                       name="liens[0][name]"
+                                       value="{{ old('liens.0.name') }}"
+                                       placeholder="e.g. Acme Bank">
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label>Lien Type</label>
+                                <select class="form-control" name="liens[0][type]">
+                                    <option value="NON_ELECTRONIC" {{ old('liens.0.type') == 'NON_ELECTRONIC' ? 'selected' : '' }}>NON_ELECTRONIC</option>
+                                    <option value="ELECTRONIC" {{ old('liens.0.type') == 'ELECTRONIC' ? 'selected' : '' }}>ELECTRONIC</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label>Issue Date</label>
+                                <input type="date"
+                                       class="form-control"
+                                       name="liens[0][issue_date]"
+                                       value="{{ old('liens.0.issue_date') }}">
+                            </div>
+                            <div class="form-group col-md-2">
+                                <label>Discharge Date</label>
+                                <input type="date"
+                                       class="form-control"
+                                       name="liens[0][discharge_date]"
+                                       value="{{ old('liens.0.discharge_date') }}">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label>Lienholder Address</label>
+                                <input type="text"
+                                       class="form-control"
+                                       name="liens[0][address1]"
+                                       value="{{ old('liens.0.address1') }}"
+                                       placeholder="Street address">
+                            </div>
+                            <div class="form-group col-md-2">
+                                <label>City</label>
+                                <input type="text"
+                                       class="form-control"
+                                       name="liens[0][city]"
+                                       value="{{ old('liens.0.city') }}">
+                            </div>
+                            <div class="form-group col-md-2">
+                                <label>State</label>
+                                <input type="text"
+                                       class="form-control"
+                                       name="liens[0][state]"
+                                       value="{{ old('liens.0.state') }}"
+                                       placeholder="OH">
+                            </div>
+                            <div class="form-group col-md-2">
+                                <label>ZIP</label>
+                                <input type="text"
+                                       class="form-control"
+                                       name="liens[0][zip]"
+                                       value="{{ old('liens.0.zip') }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" class="btn btn-sm btn-outline-secondary mt-2" onclick="addLienEntry()">
+                    <i class="align-middle mr-1" data-feather="plus"></i>
+                    Add Another Lien
+                </button>
             </div>
         </div>
 
-        {{-- ══ SECTION 3: ODOMETER ══════════════════════════════════ --}}
+        {{-- ═══════════════════════════════════════════════════════════════════════ --}}
+        {{-- SECTION 5: ODOMETER (REQUIRED)                                      --}}
+        {{-- ═══════════════════════════════════════════════════════════════════════ --}}
         <div class="card">
             <div class="card-header">
                 <h5 class="card-title mb-0">
                     <i class="align-middle mr-2" data-feather="activity"></i>
-                    Odometer
+                    Odometer <span class="required-note">*</span>
                 </h5>
             </div>
             <div class="card-body">
                 <div class="form-row">
-
                     {{-- Reading --}}
                     <div class="form-group col-md-3">
                         <label>Odometer Reading <span class="required-note">*</span></label>
@@ -526,17 +961,14 @@
                         <label>Condition <span class="required-note">*</span></label>
                         <select class="form-control @error('odometer_condition') is-invalid @enderror"
                                 name="odometer_condition">
-                            <option value="ACTUAL" selected>ACTUAL — Actual mileage</option>
-                            <option value="NOT_ACTUAL">NOT_ACTUAL — Exceeds limits / not accurate</option>
-                            <option value="EXEMPT">EXEMPT — Vehicle is exempt</option>
-                            <option value="NO_ODOMETER">NO_ODOMETER — No odometer</option>
+                            <option value="ACTUAL" {{ old('odometer_condition') == 'ACTUAL' ? 'selected' : '' }}>ACTUAL — Actual mileage</option>
+                            <option value="NOT_ACTUAL" {{ old('odometer_condition') == 'NOT_ACTUAL' ? 'selected' : '' }}>NOT_ACTUAL — Exceeds limits</option>
+                            <option value="EXEMPT" {{ old('odometer_condition') == 'EXEMPT' ? 'selected' : '' }}>EXEMPT — Vehicle is exempt</option>
+                            <option value="NO_ODOMETER" {{ old('odometer_condition') == 'NO_ODOMETER' ? 'selected' : '' }}>NO_ODOMETER — No odometer</option>
                         </select>
                         @error('odometer_condition')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
-                        <small class="form-text text-muted">
-                            Still provide reading even if not actual
-                        </small>
                     </div>
 
                     {{-- Date --}}
@@ -545,7 +977,7 @@
                         <input type="date"
                                class="form-control @error('odometer_date') is-invalid @enderror"
                                name="odometer_date"
-                               value="{{ old('odometer_date', $saleDate) }}">
+                               value="{{ $val('odometer_date', $saleDate) }}">
                         @error('odometer_date')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -555,34 +987,50 @@
                         </small>
                     </div>
 
+                    {{-- Unit --}}
+                    <div class="form-group col-md-3">
+                        <label>Unit <span class="required-note">*</span></label>
+                        <select class="form-control @error('odometer_unit') is-invalid @enderror"
+                                name="odometer_unit">
+                            <option value="MI" {{ old('odometer_unit', 'MI') == 'MI' ? 'selected' : '' }}>MI — Miles</option>
+                            <option value="KM" {{ old('odometer_unit') == 'KM' ? 'selected' : '' }}>KM — Kilometers</option>
+                        </select>
+                        @error('odometer_unit')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
                 </div>
             </div>
         </div>
 
-        {{-- ══ SECTION 4: DISPOSING ENTITY ═════════════════════════ --}}
+        {{-- ═══════════════════════════════════════════════════════════════════════ --}}
+        {{-- SECTION 6: DISPOSING ENTITY (AUCTION) (REQUIRED)                    --}}
+        {{-- ═══════════════════════════════════════════════════════════════════════ --}}
         <div class="card">
             <div class="card-header">
                 <h5 class="card-title mb-0">
                     <i class="align-middle mr-2" data-feather="building"></i>
-                    Disposing Entity (Auction)
+                    Disposing Entity (Auction) <span class="required-note">*</span>
                 </h5>
             </div>
             <div class="card-body">
-
                 <div class="alert alert-secondary small">
                     <i class="align-middle mr-1" data-feather="info"></i>
                     Auction companies do not need to be pre-registered with CHAMP.
-                    They can be submitted ad-hoc on each order.
+                    They can be submitted ad-hoc on each order. Enter the auction branch address.
                 </div>
 
                 <div class="form-row">
+                    {{-- Entity Type (Hidden, default: company) --}}
+                    <input type="hidden" name="disposing_type" value="company">
+
                     {{-- Name --}}
                     <div class="form-group col-md-4">
                         <label>Entity Name <span class="required-note">*</span></label>
                         <input type="text"
                                class="form-control @error('disposing_name') is-invalid @enderror"
                                name="disposing_name"
-                               value="{{ old('disposing_name', $vehicle->source) }}"
+                               value="{{ $val('disposing_name', $auctionSource) }}"
                                placeholder="e.g. Copart Inc.">
                         @error('disposing_name')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -612,7 +1060,7 @@
 
                     {{-- Address 2 --}}
                     <div class="form-group col-md-3">
-                        <label>Address Line 2</label>
+                        <label>Address Line 2 <span class="badge badge-optional">OPTIONAL</span></label>
                         <input type="text"
                                class="form-control"
                                name="disposing_address2"
@@ -667,7 +1115,7 @@
 
                     {{-- County --}}
                     <div class="form-group col-md-3">
-                        <label>County</label>
+                        <label>County <span class="badge badge-optional">OPTIONAL</span></label>
                         <input type="text"
                                class="form-control"
                                name="disposing_county"
@@ -676,10 +1124,32 @@
                     </div>
                 </div>
 
+                {{-- Phone (Optional) --}}
+                <div class="form-row">
+                    <div class="form-group col-md-3">
+                        <label>Phone Number <span class="badge badge-optional">OPTIONAL</span></label>
+                        <input type="text"
+                               class="form-control"
+                               name="disposing_phone"
+                               value="{{ old('disposing_phone') }}"
+                               placeholder="555-555-5555">
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label>Phone Type <span class="badge badge-optional">OPTIONAL</span></label>
+                        <select class="form-control" name="disposing_phone_type">
+                            <option value="MOBILE" {{ old('disposing_phone_type') == 'MOBILE' ? 'selected' : '' }}>MOBILE</option>
+                            <option value="HOME" {{ old('disposing_phone_type') == 'HOME' ? 'selected' : '' }}>HOME</option>
+                            <option value="WORK" {{ old('disposing_phone_type') == 'WORK' ? 'selected' : '' }}>WORK</option>
+                            <option value="OTHER" {{ old('disposing_phone_type') == 'OTHER' ? 'selected' : '' }}>OTHER</option>
+                        </select>
+                    </div>
+                </div>
             </div>
         </div>
 
-        {{-- ══ SECTION 5: TRANSFER DETAILS ══════════════════════════ --}}
+        {{-- ═══════════════════════════════════════════════════════════════════════ --}}
+        {{-- SECTION 7: TRANSFER DETAILS (REQUIRED)                              --}}
+        {{-- ═══════════════════════════════════════════════════════════════════════ --}}
         <div class="card">
             <div class="card-header">
                 <h5 class="card-title mb-0">
@@ -689,14 +1159,13 @@
             </div>
             <div class="card-body">
                 <div class="form-row">
-
                     {{-- Transfer Date --}}
                     <div class="form-group col-md-3">
                         <label>Transfer Date <span class="required-note">*</span></label>
                         <input type="date"
                                class="form-control @error('transfer_date') is-invalid @enderror"
                                name="transfer_date"
-                               value="{{ old('transfer_date', $saleDate) }}">
+                               value="{{ $val('transfer_date', $saleDate) }}">
                         @error('transfer_date')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -706,24 +1175,44 @@
                         </small>
                     </div>
 
+                    {{-- Requested Title Type --}}
+                    <div class="form-group col-md-3">
+                        <label>Requested Title Type <span class="required-note">*</span></label>
+                        <select class="form-control @error('requested_title_type') is-invalid @enderror"
+                                name="requested_title_type">
+                            <option value="PAPER" {{ old('requested_title_type', 'PAPER') == 'PAPER' ? 'selected' : '' }}>
+                                PAPER
+                            </option>
+                            <option value="DIGITAL" {{ old('requested_title_type') == 'DIGITAL' ? 'selected' : '' }}>
+                                DIGITAL
+                            </option>
+                        </select>
+                        @error('requested_title_type')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <small class="form-text">
+                            <span class="field-badge badge-manual">VERIFY</span>
+                            Select the title type to request
+                        </small>
+                    </div>
+
                     {{-- Internal Reference --}}
                     <div class="form-group col-md-4">
                         <label>Internal Reference (Correlation ID)</label>
                         <input type="text"
                                class="form-control font-monospace"
-                               value="{{ $vehicle->purchase_lot ?? $vehicle->auction_lot ?? 'Auto-generated' }}"
+                               value="{{ $vehicle->purchase_lot ?? $vehicle->auction_lot ?? $vehicle->id }}"
                                readonly>
                         <small class="form-text">
                             <span class="field-badge badge-auto">AUTO</span>
                             Returned in every NDTC webhook for tracking
                         </small>
                     </div>
-
                 </div>
 
                 {{-- Notes --}}
                 <div class="form-group">
-                    <label>Declaration / Notes <small class="text-muted">(Optional)</small></label>
+                    <label>Declaration / Notes <span class="badge badge-optional">OPTIONAL</span></label>
                     <textarea class="form-control"
                               name="notes"
                               rows="2"
@@ -732,11 +1221,12 @@
                         Submitted as a DECLARATION_PAGE document if filled in
                     </small>
                 </div>
-
             </div>
         </div>
 
-        {{-- ══ ACTIONS ═══════════════════════════════════════════════ --}}
+        {{-- ═══════════════════════════════════════════════════════════════════════ --}}
+        {{-- ACTIONS                                                             --}}
+        {{-- ═══════════════════════════════════════════════════════════════════════ --}}
         <div class="sticky-footer-actions">
             <div class="d-flex justify-content-between align-items-center">
                 <small class="text-muted">
@@ -766,65 +1256,6 @@
 @section('scripts')
 <script>
 $(document).ready(function () {
-
-    // ── DESCRIPTION PARSER ────────────────────────────────────
-    const MAKE_TO_NCIC = {
-        'MERCEDES-BENZ': 'MERZ', 'CHEVROLET': 'CHEV', 'DODGE':      'DODG',
-        'TOYOTA':        'TOYT', 'CADILLAC':  'CADI', 'HONDA':      'HOND',
-        'JEEP':          'JEEP', 'FORD':      'FORD', 'GMC':        'GMC',
-        'LINCOLN':       'LINC', 'LAND ROVER':'LNDR', 'LEXUS':      'LEXS',
-        'SUBARU':        'SUBA', 'AUDI':      'AUDI', 'BMW':        'BMW',
-        'NISSAN':        'NISS', 'HYUNDAI':   'HYUN', 'KIA':        'KIA',
-        'VOLKSWAGEN':    'VOLK', 'VOLVO':     'VOLV', 'BUICK':      'BUIC',
-        'INFINITI':      'INFI', 'MAZDA':     'MAZD', 'MINI':       'MINI',
-        'MITSUBISHI':    'MITS', 'PONTIAC':   'PONT', 'PORSCHE':    'PORS',
-        'RAM':           'RRAM', 'CHRYSLER':  'CHRY', 'ACURA':      'ACUR',
-    };
-
-    const MULTI_WORD = ['MERCEDES-BENZ', 'LAND ROVER', 'ROLLS ROYCE', 'ASTON MARTIN'];
-
-    function parseDescription(desc) {
-        if (!desc) return {};
-        const upper = desc.toUpperCase().trim();
-        const parts = upper.split(/\s+/);
-        const year  = parts[0];
-        const rest  = parts.slice(1).join(' ');
-
-        let make = null, model = null;
-
-        // Check multi-word makes first
-        for (const mw of MULTI_WORD) {
-            if (rest.startsWith(mw)) {
-                make  = mw;
-                model = rest.slice(mw.length).trim();
-                break;
-            }
-        }
-
-        // Single word make
-        if (!make) {
-            const first = parts[1];
-            if (MAKE_TO_NCIC[first]) {
-                make  = first;
-                model = parts.slice(2).join(' ');
-            }
-        }
-
-        return {
-            year,
-            makeNcic: make ? (MAKE_TO_NCIC[make] || make.slice(0, 4)) : '',
-            model:    model || '',
-        };
-    }
-
-    // Auto-fill on load
-    const description = @json($vehicle->description ?? '');
-    const parsed = parseDescription(description);
-
-    if (parsed.year    && !$('#field-year').val())  $('#field-year').val(parsed.year);
-    if (parsed.makeNcic)                             $('#field-make').val(parsed.makeNcic);
-    if (parsed.model   && !$('#field-model').val()) $('#field-model').val(parsed.model);
-
     // ── BRAND CHECKBOX STYLING ────────────────────────────────
     $('.brand-checkbox').on('change', function () {
         $(this).closest('.brand-check').toggleClass('is-checked', this.checked);
@@ -839,7 +1270,64 @@ $(document).ready(function () {
         );
         if (!confirmed) e.preventDefault();
     });
-
 });
+
+// ── LIEN DYNAMIC ADD ──────────────────────────────────────────
+let lienIndex = 1;
+
+function addLienEntry() {
+    const container = document.getElementById('liens-container');
+    const entry = document.createElement('div');
+    entry.className = 'lien-entry border p-3 mb-2 rounded';
+    entry.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <strong>Lien #${lienIndex + 1}</strong>
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('.lien-entry').remove()">
+                <i class="align-middle mr-1" data-feather="x"></i> Remove
+            </button>
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-4">
+                <label>Lienholder Name</label>
+                <input type="text" class="form-control" name="liens[${lienIndex}][name]" placeholder="e.g. Acme Bank">
+            </div>
+            <div class="form-group col-md-3">
+                <label>Lien Type</label>
+                <select class="form-control" name="liens[${lienIndex}][type]">
+                    <option value="NON_ELECTRONIC">NON_ELECTRONIC</option>
+                    <option value="ELECTRONIC">ELECTRONIC</option>
+                </select>
+            </div>
+            <div class="form-group col-md-3">
+                <label>Issue Date</label>
+                <input type="date" class="form-control" name="liens[${lienIndex}][issue_date]">
+            </div>
+            <div class="form-group col-md-2">
+                <label>Discharge Date</label>
+                <input type="date" class="form-control" name="liens[${lienIndex}][discharge_date]">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                <label>Lienholder Address</label>
+                <input type="text" class="form-control" name="liens[${lienIndex}][address1]" placeholder="Street address">
+            </div>
+            <div class="form-group col-md-2">
+                <label>City</label>
+                <input type="text" class="form-control" name="liens[${lienIndex}][city]">
+            </div>
+            <div class="form-group col-md-2">
+                <label>State</label>
+                <input type="text" class="form-control" name="liens[${lienIndex}][state]" placeholder="OH">
+            </div>
+            <div class="form-group col-md-2">
+                <label>ZIP</label>
+                <input type="text" class="form-control" name="liens[${lienIndex}][zip]">
+            </div>
+        </div>
+    `;
+    container.appendChild(entry);
+    lienIndex++;
+}
 </script>
 @endsection

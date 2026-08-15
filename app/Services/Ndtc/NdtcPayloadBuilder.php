@@ -15,6 +15,13 @@ class NdtcPayloadBuilder
                 'id' => [
                     'nrbNumber' => config('ndtc.nrb_number'),
                 ],
+                'name' => config('ndtc.acquiring_name'),
+                'physicalAddress' => [
+                    'addressLine1' => config('ndtc.acquiring_address1'),
+                    'city'         => config('ndtc.acquiring_city'),
+                    'stateCode'    => config('ndtc.acquiring_state'),
+                    'zipCode'      => config('ndtc.acquiring_zip'),
+                ],
             ],
 
             // ── TITLE WORK ENTITY ─────────────────────────────
@@ -76,6 +83,10 @@ class NdtcPayloadBuilder
                             'zipCode'      => $request->input('disposing_zip'),
                             'county'       => $request->input('disposing_county'),
                         ],
+                        'phone' => $request->filled('disposing_phone') ? [
+                            'number'    => $request->input('disposing_phone'),
+                            'usageType' => 'MOBILE',
+                        ] : null,
                     ],
                 ],
 

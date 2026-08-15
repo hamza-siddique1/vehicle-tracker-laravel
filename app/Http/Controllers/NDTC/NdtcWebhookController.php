@@ -48,6 +48,7 @@ class NdtcWebhookController extends Controller
         $secret   = config('ndtc.webhook_secret');
         $expected = hash_hmac('sha256', $request->getContent(), $secret);
 
+        //return hash_equals($expected, $signature);
         return true;
     }
 }

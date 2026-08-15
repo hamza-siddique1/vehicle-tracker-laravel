@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Ndtc\NdtcOrderController;
 use App\Http\Controllers\Ndtc\NdtcWebhookController;
+use App\Models\NdtcOrder;
 use Illuminate\Support\Facades\Route;
 
 // ── Authenticated NDTC routes ─────────────────────────────────
@@ -24,6 +25,11 @@ Route::prefix('ndtc')->name('ndtc.')->middleware(['auth'])->group(function () {
          ->name('orders.finalize');
     Route::post('orders/{order}/cancel',    [NdtcOrderController::class, 'cancel'])
          ->name('orders.cancel');
+
+     // Status polling endpoint — used by detail page JS
+     Route::get('orders/{order}/status', function (\App\Models\NdtcOrder $order) {
+          return response()->json(['status' => $order->status]);
+     })->name('orders.status');
 
     // Documents
     Route::post('orders/{order}/documents',
@@ -48,3 +54,4 @@ Route::prefix('ndtc')->name('ndtc.')->middleware(['auth'])->group(function () {
 Route::post('webhooks/ndtc', [NdtcWebhookController::class, 'handle'])
      ->name('ndtc.webhook')
      ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
+

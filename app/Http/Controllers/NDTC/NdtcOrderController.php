@@ -68,7 +68,7 @@ class NdtcOrderController extends Controller
             'rejected'      => NdtcOrder::where('status', 'REJECTED')->count(),
         ];
 
-        return view('ndtc.orders.index', compact('orders', 'stats'));
+        return view('pages.ndtc.index', compact('orders', 'stats'));
     }
 
     // ── CREATE ────────────────────────────────────────────────────
@@ -105,14 +105,8 @@ class NdtcOrderController extends Controller
     // ── STORE ─────────────────────────────────────────────────────
     public function store(StoreNdtcOrderRequest $request)
     {
-        // Build correlation ID
-        $vin           = strtoupper($request->input('vin'));
-        $correlationId = $vin . '-' . now()->format('YmdHis');
-
         // Build NDTC payload
         $payload              = $this->builder->fromRequest($request);
-
-        $payload['correlationId'] = $correlationId;
 
         // Call NDTC API
         try {
@@ -148,7 +142,7 @@ class NdtcOrderController extends Controller
         ]);
 
         return redirect()
-            ->route('pages.ndtc.show', $order)
+            ->route('orders.show', $order)
             ->with('success', 'Order created successfully. Waiting for CHAMP to confirm before uploading documents.');
     }
 

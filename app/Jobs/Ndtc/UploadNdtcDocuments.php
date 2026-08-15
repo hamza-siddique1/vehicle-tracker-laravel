@@ -35,20 +35,34 @@ class UploadNdtcDocuments implements ShouldQueue
         ]);
 
         try {
-            // Step 1 — create document record on NDTC → get presigned URL
+            // Step 1 — call NDTC create document → get presigned S3 details
             $response = $api->createDocument($this->order->ndtc_order_id, [
                 'documentContent' => $this->document->document_content,
-                'fileType'        => $this->document->file_mime_type,
-                'fileDisplayName' => $this->document->file_display_name,
+                'fileReference'   => [
+                    'mimeType' => $this->document->file_mime_type,
+                ],
             ]);
 
-            $presignedUrl  = $response['url'];
-            $fields        = $response['fields'];
-            $ndtcDocumentId = $response['fields']['x-amz-meta-documentId']
-                           ?? $response['documentId']
-                           ?? null;
+            // Parse the actual response structure
+            $presignedPostDetails = $response['preSignedPostDetails']
+                ?? throw new \Exception('NDTC response missing preSignedPostDetails');
 
-            // Step 2 — upload file directly to S3
+            $presignedUrl   = $presignedPostDetails['url']
+                ?? throw new \Exception('NDTC response missing presigned URL');
+
+            $fields         = $presignedPostDetails['fields']
+                ?? throw new \Exception('NDTC response missing presigned fields');
+
+            $ndtcDocumentId = $fields['x-amz-meta-documentId'] ?? null;
+
+            Log::info('NDTC document presigned URL received', [
+                'order_id'        => $this->order->id,
+                'document_id'     => $this->document->id,
+                'ndtc_request_id' => $response['requestId'] ?? null,
+                'ndtc_doc_id'     => $ndtcDocumentId,
+            ]);
+
+            // Step 2 — upload file directly to S3 presigned URL
             if (!file_exists($this->filePath)) {
                 throw new \Exception("Temp file not found: {$this->filePath}");
             }
@@ -68,6 +82,12 @@ class UploadNdtcDocuments implements ShouldQueue
                 unlink($this->filePath);
             }
 
+            Log::info('NDTC document uploaded successfully', [
+                'order_id'    => $this->order->id,
+                'document_id' => $this->document->id,
+                'ndtc_doc_id' => $ndtcDocumentId,
+            ]);
+
         } catch (\Exception $e) {
             $this->document->update([
                 'status'       => NdtcOrderDocument::STATUS_FAILED,
@@ -80,7 +100,7 @@ class UploadNdtcDocuments implements ShouldQueue
                 'error'       => $e->getMessage(),
             ]);
 
-            throw $e; // Re-throw so queue retries
+            throw $e;
         }
     }
 
