@@ -1,11 +1,11 @@
 on:
   push:
     branches:
-      - main
-name: 🚀 Deploy website on push
+      - implement-ndtc-api
+name: 🚀 Deploy website on push staging
 jobs:
   web-deploy:
-    name: 🎉 Deploy to Servers
+    name: 🎉 Deploy to Staging
     runs-on: ubuntu-latest
     steps:
       - name: 🚚 Get latest code
@@ -16,5 +16,5 @@ jobs:
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USER }}
-          password: ${{ secrets.FTP_PASSWORD }}
+          username: ${{ secrets.FTP_USER_STAGING }}
+          password: ${{ secrets.FTP_PASSWORD_STAGING }}
