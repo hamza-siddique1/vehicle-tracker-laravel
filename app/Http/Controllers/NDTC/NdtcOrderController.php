@@ -13,7 +13,6 @@ use App\Services\Ndtc\NdtcApiService;
 use App\Services\Ndtc\NdtcDescriptionParser;
 use App\Services\Ndtc\NdtcPayloadBuilder;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 class NdtcOrderController extends Controller
 {
