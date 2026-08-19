@@ -17,23 +17,23 @@
                 {{-- Entity ID / NRB Number --}}
                 <div class="form-row">
                     <div class="form-group col-md-4">
-                        <label>NRB Number or Entity ID <span class="required-note">*</span></label>
+                        <label>NRB Number <span class="required-note">*</span></label>
                         <input type="text"
                                class="form-control @error('acquiring_entity_id') is-invalid @enderror"
                                name="acquiring_entity_id"
                                value="{{ $val('acquiring_entity_id') }}"
-                               placeholder="e.g. 12345 or GUID">
+                               placeholder="e.g. 12345">
                         @error('acquiring_entity_id')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                         <small class="form-text">
                             <span class="field-badge badge-empty">REQUIRED</span>
-                            NRB Number (numeric) or Entity ID (GUID)
+                            NRB Number (numeric)
                         </small>
                     </div>
 
                     <div class="form-group col-md-4">
-                        <label>Entity Name <span class="required-note">*</span></label>
+                        <label>Entity Name <span class="required-note"></span></label>
                         <input type="text"
                                class="form-control @error('acquiring_entity_name') is-invalid @enderror"
                                name="acquiring_entity_name"
@@ -53,7 +53,7 @@
                 <div class="section-label">Physical Address</div>
                 <div class="form-row">
                     <div class="form-group col-md-6">
-                        <label>Address Line 1 <span class="required-note">*</span></label>
+                        <label>Address Line 1 <span class="required-note"></span></label>
                         <input type="text"
                                class="form-control @error('acquiring_address1') is-invalid @enderror"
                                name="acquiring_address1"
@@ -76,7 +76,7 @@
 
                 <div class="form-row">
                     <div class="form-group col-md-4">
-                        <label>City <span class="required-note">*</span></label>
+                        <label>City <span class="required-note"></span></label>
                         <input type="text"
                                class="form-control @error('acquiring_city') is-invalid @enderror"
                                name="acquiring_city"
@@ -87,7 +87,7 @@
                     </div>
 
                     <div class="form-group col-md-3">
-                        <label>State <span class="required-note">*</span></label>
+                        <label>State <span class="required-note"></span></label>
                         <select class="form-control @error('acquiring_state') is-invalid @enderror"
                                 name="acquiring_state">
                             <option value="">-- Select --</option>
@@ -103,7 +103,7 @@
                     </div>
 
                     <div class="form-group col-md-3">
-                        <label>ZIP Code <span class="required-note">*</span></label>
+                        <label>ZIP Code <span class="required-note"></span></label>
                         <input type="text"
                                class="form-control @error('acquiring_zip') is-invalid @enderror"
                                name="acquiring_zip"

@@ -144,10 +144,12 @@
                             <option value="ELECTRIC_AND_DIESEL_HYBRID" {{ old('fuel_type') == 'ELECTRIC_AND_DIESEL_HYBRID' ? 'selected' : '' }}>HYBRID — Electric &amp; Diesel</option>
                             <option value="FLEXIBLE" {{ old('fuel_type') == 'FLEXIBLE' ? 'selected' : '' }}>FLEXIBLE — Flex Fuel</option>
                             <option value="ETHANOL" {{ old('fuel_type') == 'ETHANOL' ? 'selected' : '' }}>ETHANOL</option>
+                            <option value="METHANOL" {{ old('fuel_type') == 'METHANOL' ? 'selected' : '' }}>METHANOL</option>
                             <option value="PROPANE" {{ old('fuel_type') == 'PROPANE' ? 'selected' : '' }}>PROPANE</option>
-                            <option value="COMPRESSED_NATURAL_GAS" {{ old('fuel_type') == 'COMPRESSED_NATURAL_GAS' ? 'selected' : '' }}>CNG</option>
-                            <option value="LIQUID_NATURAL_GAS" {{ old('fuel_type') == 'LIQUID_NATURAL_GAS' ? 'selected' : '' }}>LNG</option>
-                            <option value="HYDROGEN_FUEL_CELL" {{ old('fuel_type') == 'HYDROGEN_FUEL_CELL' ? 'selected' : '' }}>HYDROGEN</option>
+                            <option value="COMPRESSED_NATURAL_GAS" {{ old('fuel_type') == 'COMPRESSED_NATURAL_GAS' ? 'selected' : '' }}>CNG — Compressed Natural Gas</option>
+                            <option value="LIQUID_NATURAL_GAS" {{ old('fuel_type') == 'LIQUID_NATURAL_GAS' ? 'selected' : '' }}>LNG — Liquid Natural Gas</option>
+                            <option value="HYDROGEN_FUEL_CELL" {{ old('fuel_type') == 'HYDROGEN_FUEL_CELL' ? 'selected' : '' }}>HYDROGEN — Fuel Cell</option>
+                            <option value="CONVERTIBLE" {{ old('fuel_type') == 'CONVERTIBLE' ? 'selected' : '' }}>CONVERTIBLE</option>
                             <option value="UNKNOWN" {{ old('fuel_type') == 'UNKNOWN' ? 'selected' : '' }}>UNKNOWN</option>
                         </select>
                         @error('fuel_type')

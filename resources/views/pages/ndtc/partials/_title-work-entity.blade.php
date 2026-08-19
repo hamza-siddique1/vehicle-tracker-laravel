@@ -15,18 +15,18 @@
 
                 <div class="form-row">
                     <div class="form-group col-md-4">
-                        <label>NRB Number or Entity ID <span class="required-note">*</span></label>
+                        <label>NRB Number<span class="required-note">*</span></label>
                         <input type="text"
                                class="form-control @error('title_work_entity_id') is-invalid @enderror"
                                name="title_work_entity_id"
                                value="{{ $val('title_work_entity_id') }}"
-                               placeholder="e.g. 12345 or GUID">
+                               placeholder="e.g. 12345">
                         @error('title_work_entity_id')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                         <small class="form-text">
                             <span class="field-badge badge-empty">REQUIRED</span>
-                            NRB Number or Entity ID
+                            NRB Number
                         </small>
                     </div>
                 </div>

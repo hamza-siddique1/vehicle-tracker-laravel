@@ -53,7 +53,7 @@
 
                     {{-- Title Type --}}
                     <div class="form-group col-md-2">
-                        <label>Title Type <span class="required-note">*</span></label>
+                        <label>Title Type <span class="required-note"></span></label>
                         <select class="form-control @error('title_type') is-invalid @enderror"
                                 name="title_type">
                             <option value="PAPER" {{ old('title_type', $titleType) == 'PAPER' ? 'selected' : '' }}>
@@ -92,21 +92,28 @@
                 </p>
                 <div class="form-row">
                     @foreach([
-                        'SALVAGE'  => 'SALVAGE',
-                        'JUNK'     => 'JUNK',
-                        'REBUILT'  => 'REBUILT',
-                        'FLOOD'    => 'FLOOD',
-                        'FIRE'     => 'FIRE',
-                        'LEMON'    => 'LEMON',
-                        'WATER_DAMAGE' => 'WATER_DAMAGE',
-                        'DISMANTLED' => 'DISMANTLED',
-                        'RECONSTRUCTED' => 'RECONSTRUCTED',
-                        'UNRECOVERED_THEFT' => 'UNRECOVERED_THEFT',
-                        'EXPORT_ONLY' => 'EXPORT_ONLY',
-                        'OWNER_RETAINED' => 'OWNER_RETAINED',
-                        'MANUFACTURER_BUY_BACK' => 'MANUFACTURER_BUY_BACK',
-                        'REPAIRED' => 'REPAIRED',
-                        'CRUSHED' => 'CRUSHED',
+                        'SALVAGE'                => 'SALVAGE',
+                        'JUNK'                   => 'JUNK',
+                        'TOTALED'                => 'TOTALED',
+                        'LEMON'                  => 'LEMON',
+                        'FLOOD'                  => 'FLOOD',
+                        'FIRE'                   => 'FIRE',
+                        'WATER_DAMAGE'           => 'WATER_DAMAGE',
+                        'DISMANTLED'             => 'DISMANTLED',
+                        'REBUILT'                => 'REBUILT',
+                        'WARRANTY_RETURN'        => 'WARRANTY_RETURN',
+                        'STREET_ROD'             => 'STREET_ROD',
+                        'REPLICA'                => 'REPLICA',
+                        'OWNER_RETAINED'         => 'OWNER_RETAINED',
+                        'MEMORANDUM_COPY'        => 'MEMORANDUM_COPY',
+                        'VIN_REPLACED'           => 'VIN_REPLACED',
+                        'GRAY_MARKET'            => 'GRAY_MARKET',
+                        'MANUFACTURER_BUY_BACK'  => 'MANUFACTURER_BUY_BACK',
+                        'REPAIRED'               => 'REPAIRED',
+                        'CRUSHED'                => 'CRUSHED',
+                        'EXPORT_ONLY'            => 'EXPORT_ONLY',
+                        'RECONSTRUCTED'          => 'RECONSTRUCTED',
+                        'UNRECOVERED_THEFT'      => 'UNRECOVERED_THEFT',
                     ] as $value => $label)
                         <div class="col-md-3 mb-2">
                             <label class="brand-check" id="brand-label-{{ strtolower($value) }}">
