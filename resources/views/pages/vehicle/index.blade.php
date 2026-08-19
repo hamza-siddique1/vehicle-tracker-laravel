@@ -57,7 +57,6 @@
 
                     var vehicle_id = response;
                     url = '/vehicles/' + vehicle_id;
-                    console.log(url);
                     $.get(url + '/html', function(response) {
                         //replace ID with "Vehicle ID",keys with "Has Keys"
 

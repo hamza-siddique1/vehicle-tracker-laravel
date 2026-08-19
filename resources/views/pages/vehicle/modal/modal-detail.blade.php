@@ -10,10 +10,13 @@
                             <div class="modal-header">
                                 <h5 class="modal-title">Vehicle Details</h5>
                             </div>
-{{--                            This is the div where response of vehicle details is returned--}}
                             <div id="vehicle-detail-div"></div>
 
                             <div class="modal-footer">
+                                <a href="#"
+                                    class="btn btn-success mr-auto" id="create-ndtc-btn">
+                                        <i class="fa fa-paper-plane me-1"></i> Create NDTC Order
+                                    </a>
                                 <button type="button" class="btn btn-secondary" id="close-modal-btn"
                                         data-dismiss="modal">Close
                                 </button>

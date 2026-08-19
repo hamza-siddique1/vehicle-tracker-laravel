@@ -3,11 +3,11 @@
 namespace App\Models;
 
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class Vehicle extends Model
@@ -152,7 +152,7 @@ class Vehicle extends Model
             )
     ";
 
-        $result = DB::select(DB::raw($query));
+        $result = DB::select($query);
         return $result[0]->aggregate;
     }
 
