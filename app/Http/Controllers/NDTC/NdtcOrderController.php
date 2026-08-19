@@ -105,12 +105,15 @@ class NdtcOrderController extends Controller
     // ── STORE ─────────────────────────────────────────────────────
     public function store(StoreNdtcOrderRequest $request)
     {
+        $correlationId = strtoupper($request->input('vin')) . '-' . now()->format('YmdHis');
         // Build NDTC payload
-        $payload              = $this->builder->fromRequest($request);
-
+        $payload              = $this->builder->fromRequest($request, $correlationId);
         // Call NDTC API
         try {
             $response = $this->api->createOrder($payload);
+            // $response = [
+            //     'orderId' => Str::random(24),
+            // ];
         } catch (\Exception $e) {
             return back()
                 ->withInput()
@@ -131,7 +134,7 @@ class NdtcOrderController extends Controller
             'created_by'          => auth()->id(),
             'ndtc_order_id'       => $ndtcOrderId,
             'correlation_id'      => $correlationId,
-            'vin'                 => $vin,
+            'vin'                 => $request->input('vin'),
             'vehicle_description' => $request->input('year') . ' '
                                    . $request->input('make') . ' '
                                    . $request->input('model'),
@@ -142,7 +145,7 @@ class NdtcOrderController extends Controller
         ]);
 
         return redirect()
-            ->route('orders.show', $order)
+            ->route('ndtc.orders.show', $order)
             ->with('success', 'Order created successfully. Waiting for CHAMP to confirm before uploading documents.');
     }
 
@@ -156,6 +159,8 @@ class NdtcOrderController extends Controller
             'rejectionHistory' => fn($q) => $q->orderBy('rejected_at', 'desc'),
             'createdBy',
         ]);
+
+        //dd($order->webhookLogs);
 
         return view('pages.ndtc.show', compact('order'));
     }

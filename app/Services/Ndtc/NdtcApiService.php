@@ -28,8 +28,23 @@ class NdtcApiService
     private function getOrderEndpoint(string $transactionType): string
     {
         return match($transactionType) {
-            'TNL'  => '/api/v3/clearinghouse/orders/transfer-no-lien',
-            'TWL'  => '/api/v3/clearinghouse/orders/transfer-with-lien',
+            'TNL'   => '/api/v3/clearinghouse/orders/transfer-no-lien',
+            'TWL'   => '/api/v3/clearinghouse/orders/transfer-with-lien',
+            'TWEL'  => '/api/v3/clearinghouse/orders/transfer-with-electronic-lien',
+            'DNT'   => '/api/v3/clearinghouse/orders/dealer-no-title',
+            'EOL'   => '/api/v3/clearinghouse/orders/end-of-lease',
+            'RT'    => '/api/v3/clearinghouse/orders/recovered-theft',
+            'RWT'   => '/api/v3/clearinghouse/orders/repossession-with-title',
+            'RWUT'  => '/api/v3/clearinghouse/orders/repossession-with-unfiled-title',
+            'RWOT'  => '/api/v3/clearinghouse/orders/repossession-without-title',
+            'SNL'   => '/api/v3/clearinghouse/orders/salvage-no-lien',
+            'SNT'   => '/api/v3/clearinghouse/orders/salvage-no-title',
+            'SWL'   => '/api/v3/clearinghouse/orders/salvage-with-lien',
+            'SPR'   => '/api/v3/clearinghouse/orders/single-party-retitling',
+            'SPS'   => '/api/v3/clearinghouse/orders/single-party-salvage',
+            'UTNL'  => '/api/v3/clearinghouse/orders/unrecovered-theft-no-lien',
+            'UTNT'  => '/api/v3/clearinghouse/orders/unrecovered-theft-no-title',
+            'UTWL'  => '/api/v3/clearinghouse/orders/unrecovered-theft-with-lien',
             default => throw new \Exception("Unsupported transaction type: {$transactionType}"),
         };
     }

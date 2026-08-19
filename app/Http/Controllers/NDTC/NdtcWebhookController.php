@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Ndtc;
 
 use App\Http\Controllers\Controller;
 use App\Jobs\Ndtc\ProcessNdtcWebhook;
+use App\Models\NdtcOrder;
 use App\Models\NdtcWebhookLog;
 use Illuminate\Http\Request;
 
@@ -21,8 +22,11 @@ class NdtcWebhookController extends Controller
 
         $payload = $request->json()->all();
 
+        $order_id = NdtcOrder::where('ndtc_order_id', $payload['orderId'] ?? null)->value('id');
+
         // Step 2 — log immediately before anything else
         NdtcWebhookLog::create([
+            'order_id'      => $order_id,
             'ndtc_order_id'      => $payload['orderId'] ?? null,
             'event'              => $payload['event'] ?? 'UNKNOWN',
             'ndtc_status'        => $payload['status'] ?? null,

@@ -101,9 +101,6 @@
 .rejection-text{font-size:.78rem;color:#212529;line-height:1.6;background:#fff;border-radius:4px;padding:.5rem .75rem;white-space:pre-wrap;border:1px solid #f5c6cb}
 </style>
 @endsection
-
-@section('content')
-
 @php
     // ── Extract payload data ──────────────────────────────────────
     $payload   = $order->order_payload ?? [];
@@ -191,8 +188,17 @@
 
     // Rejection reasons
     $rejections = $order->rejection_reasons ?? [];
+
+    $terminalStatuses = ['COMPLETED', 'CANCELLED', 'AUTO_REJECTED', 'MANUALLY_REJECTED', 'TITLE_TERMINATED'];
 @endphp
 
+@section('content')
+
+    @if(session('success'))
+        <x-alert type="success">{{ session('success') }}</x-alert>
+    @elseif(session('account'))
+        <x-alert type="success">{{ session('account') }}</x-alert>
+    @endif
 {{-- ══ PAGE HEADING ═══════════════════════════════════════════ --}}
 <div class="d-flex align-items-start justify-content-between mb-3">
     <div>
@@ -1252,15 +1258,18 @@ $(document).ready(function () {
     });
 
     // Poll for status update when order is in a transient state
-    @if(in_array($order->status, ['PROCESSING', 'MANUAL_REVIEW', 'ON_HOLD', 'READY_FOR_DOCUMENTS']))
-    var currentStatus = '{{ $order->status }}';
-    setInterval(function () {
-        $.get('{{ route('ndtc.orders.status', $order) }}', function (data) {
-            if (data.status !== currentStatus) {
-                window.location.reload();
-            }
-        });
-    }, 30000); // poll every 30 seconds
+
+
+    @if(!in_array($order->status, $terminalStatuses))
+        var currentStatus = '{{ $order->status }}';
+        var pollInterval = setInterval(function () {
+            $.get('{{ route('ndtc.orders.status', $order) }}', function (data) {
+                if (data.status !== currentStatus) {
+                    clearInterval(pollInterval);
+                    window.location.reload();
+                }
+            });
+        }, 30000); // poll every 2 seconds
     @endif
 
 });
