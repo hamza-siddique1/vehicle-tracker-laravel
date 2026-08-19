@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 
 class NdtcPayloadBuilder
 {
-    public function fromRequest(Request $request): array
+    public function fromRequest(Request $request, $correlationId): array
     {
         return [
             // ── ACQUIRING ENTITY ──────────────────────────────
@@ -100,9 +100,7 @@ class NdtcPayloadBuilder
 
             // ── CLIENT INTEGRATION ────────────────────────────
             'clientIntegration' => [
-                'correlationId' => strtoupper($request->input('vin'))
-                                 . '-'
-                                 . now()->format('YmdHis'),
+                'correlationId' => $correlationId,
             ],
         ];
     }
