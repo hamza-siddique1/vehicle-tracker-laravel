@@ -5,11 +5,11 @@ namespace App\Http\Controllers;
 use App\Http\Resources\RunList\RunListCollection;
 use App\Models\CSVHeader;
 use App\Models\RunList;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Spatie\QueryBuilder\QueryBuilder;
 use Illuminate\Support\Facades\Session;
-use Barryvdh\DomPDF\Facade\Pdf;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class RunListController extends Controller
 {
@@ -136,13 +136,13 @@ class RunListController extends Controller
     private function buildRunListQuery(Request $request)
     {
         $query = QueryBuilder::for(RunList::class)
-            ->allowedFilters([
+            ->allowedFilters(
                 'item_number',
                 'lot_number',
                 'claim_number',
                 'description',
                 'number_of_runs',
-            ])
+            )
             ->where('user_id', auth()->id());
 
         // Determine the sort direction and field
