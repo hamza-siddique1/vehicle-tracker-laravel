@@ -13,10 +13,10 @@
                             <div id="vehicle-detail-div"></div>
 
                             <div class="modal-footer">
-                                <a href="#"
+                                {{-- <a href="#"
                                     class="btn btn-success mr-auto" id="create-ndtc-btn">
                                         <i class="fa fa-paper-plane me-1"></i> Create NDTC Order
-                                    </a>
+                                    </a> --}}
                                 <button type="button" class="btn btn-secondary" id="close-modal-btn"
                                         data-dismiss="modal">Close
                                 </button>
