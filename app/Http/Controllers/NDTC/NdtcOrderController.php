@@ -111,8 +111,6 @@ class NdtcOrderController extends Controller
             'title_terminated'   => (clone $statsQuery)->where('status', 'TITLE_TERMINATED')->count(),
         ];
 
-        dd($stats);
-
         $orders = $query->paginate(10)->withQueryString();
 
         return view('pages.ndtc.index', compact('orders', 'stats'));
@@ -207,7 +205,7 @@ class NdtcOrderController extends Controller
             'createdBy',
         ]);
 
-        //dd($order->webhookLogs);
+        // dd($order->documents);
 
         return view('pages.ndtc.show', compact('order'));
     }
@@ -382,5 +380,27 @@ class NdtcOrderController extends Controller
         UploadNdtcDocuments::dispatch($order, $newDocument, storage_path('app/' . $tempPath));
 
         return back()->with('success', 'Document replaced and queued for upload.');
+    }
+
+    // ── DOCUMENT VIEW ─────────────────────────────────────────────
+    public function viewDocument(NdtcOrder $order, NdtcOrderDocument $document)
+    {
+
+        if ($document->ndtc_order_id !== $order->id) {
+            abort(404);
+        }
+
+        if (! $document->ndtc_document_id) {
+            return back()->with('error', 'Document is not yet available on NDTC.');
+        }
+
+        try {
+            $response = $this->api->getDocument($order->ndtc_order_id, $document->ndtc_document_id);
+            $presignedUrl = is_array($response) ? $response['presignedUrl'] : $response;
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to retrieve document: ' . $e->getMessage());
+        }
+
+        return redirect()->away($presignedUrl);
     }
 }

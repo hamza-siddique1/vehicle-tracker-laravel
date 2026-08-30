@@ -155,7 +155,7 @@
 
                                     {{-- Transaction type --}}
                                     <td>
-                                        <span class="badge badge-light">{{ $order->transaction_type }}</span>
+                                        <span class="badge bg-secondary">{{ $order->transaction_type }}</span>
                                     </td>
 
                                     {{-- Status --}}

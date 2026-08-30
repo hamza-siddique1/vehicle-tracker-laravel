@@ -297,7 +297,7 @@
                     @endif
                     {{ $statusLabel }}
                 </span>
-                <span class="badge badge-light" style="font-size:.72rem">
+                <span class="badge bg-info" style="font-size:.72rem">
                     {{ $order->transaction_type }}
                 </span>
             </div>

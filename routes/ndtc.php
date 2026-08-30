@@ -38,6 +38,8 @@ Route::prefix('ndtc')->name('ndtc.')->middleware(['auth'])->group(function () {
     Route::post('orders/{order}/documents/{document}/replace',
                 [NdtcOrderController::class, 'replaceDocument'])
          ->name('orders.documents.replace');
+     Route::get('orders/{order}/documents/{document}/view', [NdtcOrderController::class, 'viewDocument'])
+          ->name('orders.documents.view');
 
     // Test panel — dev only
     if (app()->environment('local')) {
