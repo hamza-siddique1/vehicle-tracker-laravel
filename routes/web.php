@@ -31,7 +31,7 @@ use Rap2hpoutre\LaravelLogViewer\LogViewerController;
  */
 Route::get('/clear_cache', function () {
     \Illuminate\Support\Facades\Artisan::call('optimize:clear');
-    dd('Cache Cleared');
+    dd('Cache Cleared');//
 });
 
 Route::get('backup', function () {
