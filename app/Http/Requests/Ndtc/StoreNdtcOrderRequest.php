@@ -30,7 +30,7 @@ class StoreNdtcOrderRequest extends FormRequest
             'title_brands'        => ['nullable', 'array'],
             'title_brands.*'      => ['string'],
             'odometer_reading'    => ['nullable', 'integer', 'min:0'],
-            'odometer_condition'  => ['required', 'in:ACTUAL,NOT_ACTUAL,EXEMPT,NO_ODOMETER'],
+            'odometer_condition'  => ['required', 'in:ACTUAL,NOT_ACTUAL,EXEMPT,EXCEEDS_MECHANICAL_LIMIT,NO_ODOMETER'],
             'odometer_date'       => ['required', 'date'],
             'disposing_name'      => ['required', 'string', 'max:150'],
             'disposing_address1'  => ['required', 'string', 'max:100'],

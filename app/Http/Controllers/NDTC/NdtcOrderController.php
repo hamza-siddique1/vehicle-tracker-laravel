@@ -27,46 +27,93 @@ class NdtcOrderController extends Controller
     // ── INDEX ─────────────────────────────────────────────────────
     public function index(Request $request)
     {
-        $query = NdtcOrder::with(['vehicle', 'createdBy'])
-            ->latest();
+        $query = NdtcOrder::with(['vehicle', 'createdBy'])->latest('created_at');
 
-        // Filters
-        if ($request->filled('status')) {
-            $query->whereIn('status', (array) $request->input('status'));
-        }
-
-        if ($request->filled('transaction_type')) {
-            $query->where('transaction_type', $request->input('transaction_type'));
-        }
-
+        // Search
         if ($request->filled('search')) {
-            $search = $request->input('search');
-            $query->where(function ($q) use ($search) {
-                $q->where('vin', 'like', "%{$search}%")
-                  ->orWhere('ndtc_order_id', 'like', "%{$search}%")
-                  ->orWhere('correlation_id', 'like', "%{$search}%")
-                  ->orWhere('new_title_number', 'like', "%{$search}%")
-                  ->orWhere('vehicle_description', 'like', "%{$search}%");
+            $s = $request->search;
+            $query->where(function ($q) use ($s) {
+                $q->where('vin',              'like', "%{$s}%")
+                ->orWhere('ndtc_order_id',  'like', "%{$s}%")
+                ->orWhere('correlation_id', 'like', "%{$s}%")
+                ->orWhere('new_title_number','like',"%{$s}%")
+                ->orWhere('vehicle_description','like',"%{$s}%");
             });
         }
 
+        // Status filter
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Transaction type filter
+        if ($request->filled('transaction_type')) {
+            $query->where('transaction_type', $request->transaction_type);
+        }
+
+        // Date range
         if ($request->filled('date_from')) {
-            $query->whereDate('transfer_date', '>=', $request->input('date_from'));
+            $query->whereDate('transfer_date', '>=', $request->date_from);
         }
-
         if ($request->filled('date_to')) {
-            $query->whereDate('transfer_date', '<=', $request->input('date_to'));
+            $query->whereDate('transfer_date', '<=', $request->date_to);
         }
 
-        $orders = $query->paginate(20)->withQueryString();
+        // Checkbox filters
+        if ($request->boolean('has_rejections')) {
+            $query->where('rejection_count', '>', 0);
+        }
+        if ($request->boolean('finalized')) {
+            $query->where('finalized', true);
+        }
+        if ($request->boolean('needs_action')) {
+            $query->whereIn('status', ['REJECTED', 'AGING', 'READY_FOR_DOCUMENTS', 'READY_TO_FINALIZE']);
+        }
 
-        // Stats for top cards
+        // New filters (map to your actual columns/relations)
+        if ($request->filled('vehicle_make')) {
+            $query->whereHas('vehicle', function ($q) use ($request) {
+                $q->where('make', $request->vehicle_make);
+            });
+        }
+        if ($request->filled('issuing_state')) {
+            $query->where('issuing_state_code', $request->issuing_state);
+        }
+        if ($request->filled('title_brand')) {
+            // adjust if title_brands is stored as JSON array
+            $query->whereJsonContains('title_brands', $request->title_brand);
+        }
+        if ($request->filled('lien_type')) {
+            $query->where('lien_type', $request->lien_type);
+        }
+
+        // Sorting
+        $sort = $request->get('sort', 'created_at');
+        $dir  = $request->get('dir', 'desc');
+        $allowed = ['vin','status','transfer_date','created_at','rejection_count','approved_at'];
+        if (in_array($sort, $allowed)) {
+            $query->orderBy($sort, $dir === 'asc' ? 'asc' : 'desc');
+        }
+
+        // IMPORTANT: clone the query BUILDER (pre-pagination) for stats,
+        // so stats reflect the full filtered result set, not just page 5.
+        $statsQuery = clone $query;
+
         $stats = [
-            'total'         => NdtcOrder::count(),
-            'processing'    => NdtcOrder::where('status', 'PROCESSING')->count(),
-            'approved'      => NdtcOrder::where('status', 'APPROVED')->count(),
-            'rejected'      => NdtcOrder::where('status', 'REJECTED')->count(),
+            'total'              => (clone $statsQuery)->count(),
+            'draft'              => (clone $statsQuery)->where('status', 'DRAFT')->count(),
+            'ready_for_docs'     => (clone $statsQuery)->where('status', 'READY_FOR_DOCUMENTS')->count(),
+            'ready_to_finalize'  => (clone $statsQuery)->where('status', 'READY_TO_FINALIZE')->count(),
+            'processing'         => (clone $statsQuery)->whereIn('status', ['PROCESSING', 'MANUAL_REVIEW'])->count(),
+            'on_hold_aging'      => (clone $statsQuery)->whereIn('status', ['ON_HOLD', 'AGING'])->count(),
+            'completed'          => (clone $statsQuery)->whereIn('status', ['APPROVED', 'COMPLETED'])->count(),
+            'rejected'           => (clone $statsQuery)->where('status', 'REJECTED')->count(),
+            'canceled'           => (clone $statsQuery)->where('status', 'CANCELLED')->count(),
+            'manual_review'      => (clone $statsQuery)->where('status', 'MANUAL_REVIEW')->count(),
+            'title_terminated'   => (clone $statsQuery)->where('status', 'TITLE_TERMINATED')->count(),
         ];
+
+        $orders = $query->paginate(5)->withQueryString();
 
         return view('pages.ndtc.index', compact('orders', 'stats'));
     }

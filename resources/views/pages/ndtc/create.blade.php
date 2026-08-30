@@ -92,6 +92,10 @@
             margin: 0.5rem 0;
             border-radius: 4px;
         }
+
+        .alert {
+            padding: 10px;
+        }
     </style>
 @endsection
 
@@ -199,24 +203,13 @@
                     name="ndtc_transaction_type"
                     id="txnTypeSelect"
                     style="max-width: 380px;"
-                    onchange="document.getElementById('noTitleReasonBlock').style.display = ['DNT','EOL','RWUT','RWOT'].includes(this.value) ? 'block' : 'none';">
-                <option value="TNL"  {{ $val('ndtc_transaction_type', 'TNL') == 'TNL'  ? 'selected' : '' }}>Transfer No Lien</option>
-                <option value="TWL"  {{ $val('ndtc_transaction_type') == 'TWL'  ? 'selected' : '' }}>Transfer With Lien</option>
-                <option value="TWEL" {{ $val('ndtc_transaction_type') == 'TWEL' ? 'selected' : '' }}>Transfer With Electronic Lien</option>
-                <option value="DNT"  {{ $val('ndtc_transaction_type') == 'DNT'  ? 'selected' : '' }}>Dealer No Title</option>
-                <option value="EOL"  {{ $val('ndtc_transaction_type') == 'EOL'  ? 'selected' : '' }}>End of Lease</option>
-                <option value="RT"   {{ $val('ndtc_transaction_type') == 'RT'   ? 'selected' : '' }}>Recovered Theft</option>
-                <option value="RWT"  {{ $val('ndtc_transaction_type') == 'RWT'  ? 'selected' : '' }}>Repossession With Title</option>
-                <option value="RWUT" {{ $val('ndtc_transaction_type') == 'RWUT' ? 'selected' : '' }}>Repossession With Unfiled Title</option>
-                <option value="RWOT" {{ $val('ndtc_transaction_type') == 'RWOT' ? 'selected' : '' }}>Repossession Without Title</option>
-                <option value="SNL"  {{ $val('ndtc_transaction_type') == 'SNL'  ? 'selected' : '' }}>Salvage No Lien</option>
-                <option value="SNT"  {{ $val('ndtc_transaction_type') == 'SNT'  ? 'selected' : '' }}>Salvage No Title</option>
-                <option value="SWL"  {{ $val('ndtc_transaction_type') == 'SWL'  ? 'selected' : '' }}>Salvage With Lien</option>
-                <option value="SPR"  {{ $val('ndtc_transaction_type') == 'SPR'  ? 'selected' : '' }}>Single Party Retitling</option>
-                <option value="SPS"  {{ $val('ndtc_transaction_type') == 'SPS'  ? 'selected' : '' }}>Single Party Salvage</option>
-                <option value="UTNL" {{ $val('ndtc_transaction_type') == 'UTNL' ? 'selected' : '' }}>Unrecovered Theft No Lien</option>
-                <option value="UTNT" {{ $val('ndtc_transaction_type') == 'UTNT' ? 'selected' : '' }}>Unrecovered Theft No Title</option>
-                <option value="UTWL" {{ $val('ndtc_transaction_type') == 'UTWL' ? 'selected' : '' }}>Unrecovered Theft With Lien</option>
+                    onchange="document.getElementById('noTitleReasonBlock').style.display = @json(config('ndtc.no_title_transaction_types')).includes(this.value) ? 'block' : 'none';">
+                @foreach(config('ndtc.transaction_types') as $code => $label)
+                    <option value="{{ $code }}"
+                        {{ $val('ndtc_transaction_type', 'TNL') == $code ? 'selected' : '' }}>
+                        {{ $label }}
+                    </option>
+                @endforeach
             </select>
             @error('ndtc_transaction_type')
                 <div class="invalid-feedback d-block">{{ $message }}</div>
@@ -261,13 +254,12 @@
         {{-- ═══════════════════════════════════════════════════════════════════════ --}}
         {{-- SECTION 1: ACQUIRING ENTITY (REQUIRED)                              --}}
         {{-- ═══════════════════════════════════════════════════════════════════════ --}}
-        @include('pages.ndtc.partials._acquiring-entity')
+
 
         {{-- ═══════════════════════════════════════════════════════════════════════ --}}
         {{-- SECTION 2: TITLE WORK ENTITY (REQUIRED)                             --}}
         {{-- ═══════════════════════════════════════════════════════════════════════ --}}
 
-        @include('pages.ndtc.partials._title-work-entity')
         {{-- ═══════════════════════════════════════════════════════════════════════ --}}
         {{-- SECTION 3: VEHICLE INFORMATION (REQUIRED)                            --}}
         {{-- ═══════════════════════════════════════════════════════════════════════ --}}
@@ -344,25 +336,11 @@ $(document).ready(function () {
         if (!confirmed) e.preventDefault();
     });
 
-    const TXN_LABELS = {
-        'TNL':  'Transfer No Lien (TNL)',
-        'TWL':  'Transfer With Lien (TWL)',
-        'TWEL': 'Transfer With Electronic Lien (TWEL)',
-        'DNT':  'Dealer No Title (DNT)',
-        'EOL':  'End of Lease (EOL)',
-        'RT':   'Recovered Theft (RT)',
-        'RWT':  'Repossession With Title (RWT)',
-        'RWUT': 'Repossession With Unfiled Title (RWUT)',
-        'RWOT': 'Repossession Without Title (RWOT)',
-        'SNL':  'Salvage No Lien (SNL)',
-        'SNT':  'Salvage No Title (SNT)',
-        'SWL':  'Salvage With Lien (SWL)',
-        'SPR':  'Single Party Retitling (SPR)',
-        'SPS':  'Single Party Salvage (SPS)',
-        'UTNL': 'Unrecovered Theft No Lien (UTNL)',
-        'UTNT': 'Unrecovered Theft No Title (UTNT)',
-        'UTWL': 'Unrecovered Theft With Lien (UTWL)',
-    };
+    const TXN_LABELS = @json(
+        collect(config('ndtc.transaction_types'))->mapWithKeys(
+            fn($label, $code) => [$code => "{$label} ({$code})"]
+        )
+    );
 
     const NO_TITLE_REASON_TYPES = ['DNT', 'EOL', 'RWUT', 'RWOT'];
 

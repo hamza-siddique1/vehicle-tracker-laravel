@@ -30,9 +30,9 @@ class NdtcPayloadBuilder
                     'nrbNumber' => config('ndtc.nrb_number'),
                 ],
                 'representative' => [
-                    'firstName'            => $this->getFirstName(),
-                    'lastName'             => $this->getLastName(),
-                    'email'                => auth()->user()->email,
+                    'firstName'            => 'David',
+                    'lastName'             => 'Jone',
+                    'email'                => 'david_jone@gmail.com',
                     'phone'                => [
                         'number'    => '555-555-5555',
                         'usageType' => 'MOBILE',

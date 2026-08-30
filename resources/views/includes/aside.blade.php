@@ -139,7 +139,7 @@
                     </a>
                 </li>
 
-                <li class="sidebar-item {{ request()->is('vehicles/create') ? 'active' : '' }}">
+                <li class="sidebar-item {{ request()->is('vinocr/form') ? 'active' : '' }}">
                     <a class="sidebar-link" href="{{ route('vinocr.showform') }}">
                         <i class="align-middle" data-feather="plus-square"></i>
                         <span class="align-middle">Intake</span>
@@ -150,6 +150,13 @@
                     <a class="sidebar-link" href="/duplicate/vehicles">
                         <i class="align-middle" data-feather="copy"></i>
                         <span class="align-middle">Duplicated Vehicles</span>
+                    </a>
+                </li>
+
+                <li class="sidebar-item {{ request()->is('ndtc/orders') ? 'active' : '' }}">
+                    <a class="sidebar-link" href="/ndtc/orders">
+                        <i class="align-middle" data-feather="file-text"></i>
+                        <span class="align-middle">NDTC Orders</span>
                     </a>
                 </li>
             @endif

@@ -19,4 +19,26 @@ return [
     'acquiring_city'      => env('NDTC_ACQUIRING_CITY'),
     'acquiring_state'     => env('NDTC_ACQUIRING_STATE'),
     'acquiring_zip'       => env('NDTC_ACQUIRING_ZIP'),
+
+    'transaction_types' => [
+        'TNL'  => 'Transfer No Lien',
+        'TWL'  => 'Transfer With Lien',
+        'TWEL' => 'Transfer With Electronic Lien',
+        'DNT'  => 'Dealer No Title',
+        'EOL'  => 'End of Lease',
+        'RT'   => 'Recovered Theft',
+        'RWT'  => 'Repossession With Title',
+        'RWUT' => 'Repossession With Unfiled Title',
+        'RWOT' => 'Repossession Without Title',
+        'SNL'  => 'Salvage No Lien',
+        'SNT'  => 'Salvage No Title',
+        'SWL'  => 'Salvage With Lien',
+        'SPR'  => 'Single Party Retitling',
+        'SPS'  => 'Single Party Salvage',
+        'UTNL' => 'Unrecovered Theft No Lien',
+        'UTNT' => 'Unrecovered Theft No Title',
+        'UTWL' => 'Unrecovered Theft With Lien',
+    ],
+
+    'no_title_transaction_types' => ['DNT', 'EOL', 'RWUT', 'RWOT'],
 ];

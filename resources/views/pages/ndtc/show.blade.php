@@ -99,6 +99,10 @@
 .rejection-block{background:#fdf2f2;border:1px solid #f5c6cb;border-radius:.25rem;padding:.875rem;margin-bottom:.75rem}
 .rejection-title{font-size:.8rem;font-weight:600;color:#d9534f;margin-bottom:5px;display:flex;align-items:center;gap:5px}
 .rejection-text{font-size:.78rem;color:#212529;line-height:1.6;background:#fff;border-radius:4px;padding:.5rem .75rem;white-space:pre-wrap;border:1px solid #f5c6cb}
+
+.alert {
+    padding: 10px;
+}
 </style>
 @endsection
 @php

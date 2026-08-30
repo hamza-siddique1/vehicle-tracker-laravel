@@ -37,6 +37,7 @@
                             <option value="ACTUAL" {{ old('odometer_condition') == 'ACTUAL' ? 'selected' : '' }}>ACTUAL — Actual mileage</option>
                             <option value="NOT_ACTUAL" {{ old('odometer_condition') == 'NOT_ACTUAL' ? 'selected' : '' }}>NOT_ACTUAL — Exceeds limits</option>
                             <option value="EXEMPT" {{ old('odometer_condition') == 'EXEMPT' ? 'selected' : '' }}>EXEMPT — Vehicle is exempt</option>
+                            <option value="EXCEEDS_MECHANICAL_LIMIT" {{ old('odometer_condition') == 'EXCEEDS_MECHANICAL_LIMIT' ? 'selected' : '' }}>EXCEEDS_MECHANICAL_LIMIT</option>
                             <option value="NO_ODOMETER" {{ old('odometer_condition') == 'NO_ODOMETER' ? 'selected' : '' }}>NO_ODOMETER — No odometer</option>
                         </select>
                         @error('odometer_condition')
