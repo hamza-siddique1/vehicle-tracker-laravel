@@ -95,8 +95,6 @@ class NdtcOrderController extends Controller
             $query->orderBy($sort, $dir === 'asc' ? 'asc' : 'desc');
         }
 
-        // IMPORTANT: clone the query BUILDER (pre-pagination) for stats,
-        // so stats reflect the full filtered result set, not just page 5.
         $statsQuery = clone $query;
 
         $stats = [
@@ -113,7 +111,9 @@ class NdtcOrderController extends Controller
             'title_terminated'   => (clone $statsQuery)->where('status', 'TITLE_TERMINATED')->count(),
         ];
 
-        $orders = $query->paginate(5)->withQueryString();
+        dd($stats);
+
+        $orders = $query->paginate(10)->withQueryString();
 
         return view('pages.ndtc.index', compact('orders', 'stats'));
     }
