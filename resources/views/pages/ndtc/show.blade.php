@@ -500,6 +500,11 @@
             <i class="fas fa-history mr-1"></i>Timeline
         </a>
     </li>
+    <li class="nav-item">
+        <a class="nav-link" href="#tab-archive" data-toggle="tab">
+            <i class="fas fa-archive mr-1"></i>Archive
+        </a>
+    </li>
     @if($isRejected)
         <li class="nav-item">
             <a class="nav-link" href="#tab-rejection" data-toggle="tab">
@@ -1204,6 +1209,29 @@
         </div>{{-- /tab-history --}}
     @endif
 
+    <div class="tab-pane fade" id="tab-archive">
+        <div class="d-flex align-items-start gap-3 p-4 border rounded-3 bg-light-subtle">
+            <div class="d-flex align-items-center justify-content-center rounded-circle bg-danger-subtle"
+                style="width: 40px; height: 40px; flex-shrink: 0;">
+                <i class="fas fa-archive text-danger"></i>
+            </div>
+            <div class="flex-grow-1">
+                <h6 class="mb-1">Archive this order</h6>
+                <p class="text-muted small mb-3">
+                    This will hide the order from the active list. It won't be permanently deleted.
+                </p>
+                <form action="{{ route('ndtc.orders.archive', $order) }}" method="POST"
+                    onsubmit="return confirm('Archive this order? It will be hidden from the active list but not permanently deleted.');">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                        <i class="bi bi-archive me-1"></i> Archive Order
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
 </div>{{-- /tab-content --}}
 
 {{-- Replace document modal --}}
@@ -1241,6 +1269,9 @@
     </div>
 </div>
 @endif
+
+
+
 
 @endsection
 

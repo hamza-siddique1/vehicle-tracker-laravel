@@ -6,9 +6,6 @@ namespace App\Jobs\Ndtc;
 use App\Models\NdtcOrder;
 use App\Models\NdtcRejectionHistory;
 use App\Models\NdtcWebhookLog;
-use App\Notifications\Ndtc\OrderApproved;
-use App\Notifications\Ndtc\OrderManualReview;
-use App\Notifications\Ndtc\OrderRejected;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -94,11 +91,6 @@ class ProcessNdtcWebhook implements ShouldQueue
             'approved_at'      => now(),
             'last_webhook'     => $this->payload,
         ]);
-
-        // Notify agent
-        if ($order->createdBy) {
-            $order->createdBy->notify(new OrderApproved($order));
-        }
     }
 
     private function onRejected(NdtcOrder $order): void
@@ -125,20 +117,11 @@ class ProcessNdtcWebhook implements ShouldQueue
             'rejected_at'       => now(),
             'last_webhook'      => $this->payload,
         ]);
-
-        // Notify agent immediately
-        if ($order->createdBy) {
-            $order->createdBy->notify(new OrderRejected($order, $rejections));
-        }
     }
 
     private function onManualReview(NdtcOrder $order): void
     {
         $order->update(['status' => NdtcOrder::STATUS_MANUAL_REVIEW]);
-
-        if ($order->createdBy) {
-            $order->createdBy->notify(new OrderManualReview($order));
-        }
     }
 
     private function onHold(NdtcOrder $order): void

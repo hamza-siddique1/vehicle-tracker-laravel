@@ -62,6 +62,7 @@ class NdtcOrder extends Model
     const STATUS_AGING               = 'AGING';
     const STATUS_CANCELLED           = 'CANCELLED';
     const STATUS_TITLE_TERMINATED    = 'TITLE_TERMINATED';
+    const STATUS_NOT_FOUND           = 'NOT_FOUND';
 
     // Terminal statuses — no further actions possible
     const TERMINAL_STATUSES = [

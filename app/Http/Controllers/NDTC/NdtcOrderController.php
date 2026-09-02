@@ -14,7 +14,7 @@ use App\Services\Ndtc\NdtcApiService;
 use App\Services\Ndtc\NdtcDescriptionParser;
 use App\Services\Ndtc\NdtcPayloadBuilder;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Cache;
 
 class NdtcOrderController extends Controller
 {
@@ -27,7 +27,7 @@ class NdtcOrderController extends Controller
     // ── INDEX ─────────────────────────────────────────────────────
     public function index(Request $request)
     {
-        $query = NdtcOrder::with(['vehicle', 'createdBy'])->latest('created_at');
+        $query = NdtcOrder::with(['vehicle', 'createdBy']);
 
         // Search
         if ($request->filled('search')) {
@@ -88,11 +88,35 @@ class NdtcOrderController extends Controller
         }
 
         // Sorting
-        $sort = $request->get('sort', 'created_at');
-        $dir  = $request->get('dir', 'desc');
+        $sort = $request->input('sort', 'status_priority');
+        $dir  = $request->input('dir', 'desc');
         $allowed = ['vin','status','transfer_date','created_at','rejection_count','approved_at'];
-        if (in_array($sort, $allowed)) {
+        if ($sort === 'status_priority') {
+            // Custom priority: action-needed first, cancelled last, recency as tiebreaker
+            $statusOrder = [
+                'NOT_FOUND',
+                'REJECTED',
+                'READY_TO_FINALIZE',
+                'READY_FOR_DOCUMENTS',
+                'AGING',
+                'DRAFT',
+                'ON_HOLD',
+                'PROCESSING',
+                'MANUAL_REVIEW',
+                'APPROVED',
+                'COMPLETED',
+                'TITLE_TERMINATED',
+                'CANCELLED',
+            ];
+
+            $orderedList = implode(',', array_map(fn ($s) => "'{$s}'", $statusOrder));
+            $query->orderByRaw("FIELD(status, {$orderedList})")
+                ->latest('created_at');
+        } elseif (in_array($sort, $allowed)) {
             $query->orderBy($sort, $dir === 'asc' ? 'asc' : 'desc');
+        }
+        else{
+            $query->latest('created_at');
         }
 
         $statsQuery = clone $query;
@@ -385,7 +409,6 @@ class NdtcOrderController extends Controller
     // ── DOCUMENT VIEW ─────────────────────────────────────────────
     public function viewDocument(NdtcOrder $order, NdtcOrderDocument $document)
     {
-
         if ($document->ndtc_order_id !== $order->id) {
             abort(404);
         }
@@ -394,13 +417,27 @@ class NdtcOrderController extends Controller
             return back()->with('error', 'Document is not yet available on NDTC.');
         }
 
+        $cacheKey = "ndtc_doc_url:{$order->ndtc_order_id}:{$document->ndtc_document_id}";
+
         try {
-            $response = $this->api->getDocument($order->ndtc_order_id, $document->ndtc_document_id);
-            $presignedUrl = is_array($response) ? $response['presignedUrl'] : $response;
+            $presignedUrl = Cache::remember($cacheKey, 240, function () use ($order, $document) {
+                $response = $this->api->getDocument($order->ndtc_order_id, $document->ndtc_document_id);
+                return is_array($response) ? $response['presignedUrl'] : $response;
+            });
         } catch (\Exception $e) {
+            Cache::forget($cacheKey);
             return back()->with('error', 'Failed to retrieve document: ' . $e->getMessage());
         }
 
         return redirect()->away($presignedUrl);
+    }
+
+    public function archive(NdtcOrder $order)
+    {
+        $order->delete();
+
+        return redirect()
+            ->route('ndtc.orders.index', $order)
+            ->with('success', "Order for VIN {$order->vin} has been archived.");
     }
 }

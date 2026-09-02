@@ -3,6 +3,7 @@
 
 namespace App\Jobs\Ndtc;
 
+use App\Exceptions\Ndtc\NdtcApiException;
 use App\Models\NdtcOrder;
 use App\Models\NdtcOrderDocument;
 use App\Services\Ndtc\NdtcApiService;
@@ -12,7 +13,6 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 
 class UploadNdtcDocuments implements ShouldQueue
 {
@@ -88,20 +88,50 @@ class UploadNdtcDocuments implements ShouldQueue
                 'ndtc_doc_id' => $ndtcDocumentId,
             ]);
 
-        } catch (\Exception $e) {
+        } catch (NdtcApiException $e) {
+        if ($e->isOrderNotFound()) {
             $this->document->update([
                 'status'       => NdtcOrderDocument::STATUS_FAILED,
-                'upload_error' => $e->getMessage(),
+                'upload_error' => 'NDTC order not found (404): ' . $e->errorDetails,
             ]);
 
-            Log::error('NDTC document upload failed', [
+            $this->order->update([
+                'status' => NdtcOrder::STATUS_NOT_FOUND,
+            ]);
+
+            Log::warning('NDTC order not found — marking order as NOT_FOUND, no retry', [
                 'order_id'    => $this->order->id,
                 'document_id' => $this->document->id,
-                'error'       => $e->getMessage(),
+                'ndtc_order_id' => $this->order->ndtc_order_id,
             ]);
 
-            throw $e;
+            // Don't rethrow: retrying is pointless if NDTC doesn't recognize the order.
+            // This lets the job finish "normally" rather than exhausting retries into failed().
+            return;
         }
+
+        // Any other NdtcApiException falls through to the generic handling below.
+        $this->handleGenericFailure($e);
+        throw $e;
+
+    } catch (\Exception $e) {
+        $this->handleGenericFailure($e);
+        throw $e;
+    }
+}
+
+    private function handleGenericFailure(\Exception $e): void
+    {
+        $this->document->update([
+            'status'       => NdtcOrderDocument::STATUS_FAILED,
+            'upload_error' => $e->getMessage(),
+        ]);
+
+        Log::error('NDTC document upload failed', [
+            'order_id'    => $this->order->id,
+            'document_id' => $this->document->id,
+            'error'       => $e->getMessage(),
+        ]);
     }
 
     public function failed(\Throwable $e): void

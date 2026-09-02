@@ -3,6 +3,7 @@
 
 namespace App\Services\Ndtc;
 
+use App\Exceptions\Ndtc\NdtcApiException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -160,9 +161,7 @@ class NdtcApiService
                     'body'     => $response->body(),
                     'payload'  => $payload,
                 ]);
-                throw new \Exception(
-                    "NDTC API error {$response->status()}: " . $response->body()
-                );
+                throw NdtcApiException::fromResponse($response->status(), $response->body());
             }
 
             return $response->json() ?? [];

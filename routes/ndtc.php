@@ -57,3 +57,6 @@ Route::post('webhooks/ndtc', [NdtcWebhookController::class, 'handle'])
      ->name('ndtc.webhook')
      ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
 
+
+Route::delete('orders/{order}/archive', [NdtcOrderController::class, 'archive'])
+    ->name('ndtc.orders.archive');
