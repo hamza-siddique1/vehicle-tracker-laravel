@@ -153,7 +153,7 @@
                     </a>
                 </li>
 
-                <li class="sidebar-item {{ request()->is('ndtc/orders') ? 'active' : '' }}">
+                <li class="sidebar-item {{ request()->is('ndtc/*') ? 'active' : '' }}">
                     <a class="sidebar-link" href="/ndtc/orders">
                         <i class="align-middle" data-feather="file-text"></i>
                         <span class="align-middle">NDTC Orders</span>
