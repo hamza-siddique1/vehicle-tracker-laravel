@@ -60,3 +60,4 @@ Route::post('webhooks/ndtc', [NdtcWebhookController::class, 'handle'])
 
 Route::delete('orders/{order}/archive', [NdtcOrderController::class, 'archive'])
     ->name('ndtc.orders.archive');
+//
