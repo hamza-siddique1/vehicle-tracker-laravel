@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Ndtc;
 
+use App\Actions\Ndtc\SyncOrderFromChamp;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Ndtc\StoreNdtcOrderRequest;
 use App\Http\Requests\Ndtc\UpdateNdtcOrderRequest;
@@ -405,6 +406,30 @@ class NdtcOrderController extends Controller
         return back()->with('success', 'Document replaced and queued for upload.');
     }
 
+    public function deleteDocument(NdtcOrder $order, NdtcOrderDocument $document)
+    {
+        if ($document->ndtc_order_id !== $order->id) {
+            abort(404);
+        }
+
+        if ($document->is_system_generated) {
+            return back()->with('error', 'System generated documents cannot be deleted.');
+        }
+
+        // Delete from NDTC first, if it was ever actually uploaded there
+        if ($document->ndtc_document_id) {
+            try {
+                $this->api->deleteDocument($order->ndtc_order_id, $document->ndtc_document_id);
+            } catch (\Exception $e) {
+                return back()->with('error', 'Failed to delete document from NDTC: ' . $e->getMessage());
+            }
+        }
+
+        $document->delete(); // soft delete locally
+
+        return back()->with('success', 'Document deleted successfully.');
+    }
+
     // ── DOCUMENT VIEW ─────────────────────────────────────────────
     public function viewDocument(NdtcOrder $order, NdtcOrderDocument $document)
     {
@@ -438,5 +463,16 @@ class NdtcOrderController extends Controller
         return redirect()
             ->route('ndtc.orders.index', $order)
             ->with('success', "Order for VIN {$order->vin} has been archived.");
+    }
+
+    public function syncFromChamp(NdtcOrder $order, SyncOrderFromChamp $sync)
+    {
+        try {
+            $sync->execute($order);
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to sync with NDTC: ' . $e->getMessage());
+        }
+
+        return back()->with('success', 'Order synced with NDTC — status and document list updated.');
     }
 }

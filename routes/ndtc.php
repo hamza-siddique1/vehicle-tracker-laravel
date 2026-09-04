@@ -41,6 +41,12 @@ Route::prefix('ndtc')->name('ndtc.')->middleware(['auth'])->group(function () {
      Route::get('orders/{order}/documents/{document}/view', [NdtcOrderController::class, 'viewDocument'])
           ->name('orders.documents.view');
 
+     Route::delete('orders/{order}/documents/{document}', [NdtcOrderController::class, 'deleteDocument'])
+          ->name('orders.documents.delete');
+
+     Route::post('/orders/{order}/sync', [NdtcOrderController::class, 'syncFromChamp'])
+          ->name('orders.sync');
+
     // Test panel — dev only
     if (app()->environment('local')) {
         Route::get('test/webhook/{order}',

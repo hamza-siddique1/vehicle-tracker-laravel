@@ -33,12 +33,15 @@ class NdtcOrder extends Model
         'finalized_at',
         'cancelled_at',
         'order_payload',
+        'champ_snapshot',
         'rejection_reasons',
         'last_webhook',
+        'last_synced_at'
     ];
 
     protected $casts = [
         'order_payload'     => 'array',
+        'champ_snapshot'    => 'array',
         'rejection_reasons' => 'array',
         'last_webhook'      => 'array',
         'finalized'         => 'boolean',
@@ -48,6 +51,7 @@ class NdtcOrder extends Model
         'rejected_at'       => 'datetime',
         'finalized_at'      => 'datetime',
         'cancelled_at'      => 'datetime',
+        'last_synced_at' => 'datetime',
     ];
 
     // ── STATUS CONSTANTS ──────────────────────────────────────
@@ -158,5 +162,33 @@ class NdtcOrder extends Model
     public function canBeResubmitted(): bool
     {
         return $this->status === self::STATUS_REJECTED;
+    }
+
+    public function displayData()
+    {
+        if ($this->champ_snapshot) {
+            $snap = $this->champ_snapshot;
+
+            return [
+                'source'     => 'synced',
+                'vehicle'    => $snap['evidenceDetail']['vehicleDetails'] ?? [],
+                'title'      => $snap['evidenceDetail']['existingTitle'] ?? [],
+                'disposing'  => $snap['stakeholders']['disposingEntities'][0] ?? [],
+                'acquiring'  => $snap['stakeholders']['acquiringEntity'] ?? [],
+                'titleWork'  => $snap['stakeholders']['titleWorkEntity'] ?? [],
+            ];
+        }
+
+        $payload  = $this->order_payload ?? [];
+        $evidence = $payload['evidence'] ?? [];
+
+        return [
+            'source'     => 'submitted',
+            'vehicle'    => $evidence['vehicle'] ?? [],
+            'title'      => $evidence['existingTitle'] ?? [],
+            'disposing'  => $evidence['disposingEntities'][0] ?? [],
+            'acquiring'  => $payload['acquiringEntity'] ?? [],
+            'titleWork'  => $payload['titleWorkEntity'] ?? [],
+        ];
     }
 }

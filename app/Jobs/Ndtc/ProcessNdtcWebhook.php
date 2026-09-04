@@ -59,6 +59,7 @@ class ProcessNdtcWebhook implements ShouldQueue
             'status'            => NdtcOrder::STATUS_READY_FOR_DOCUMENTS,
             'finalized'         => false,
             'ready_to_finalize' => false,
+            'ndtc_status'       => $this->payload['status'],
         ]);
     }
 
@@ -67,6 +68,7 @@ class ProcessNdtcWebhook implements ShouldQueue
         $order->update([
             'status'            => NdtcOrder::STATUS_READY_TO_FINALIZE,
             'ready_to_finalize' => true,
+            'ndtc_status'       => $this->payload['status'],
         ]);
     }
 
@@ -76,6 +78,7 @@ class ProcessNdtcWebhook implements ShouldQueue
 
         $order->update([
             'status'    => NdtcOrder::STATUS_PROCESSING,
+            'ndtc_status'      => $this->payload['status'],
             'finalized' => true,
         ]);
     }

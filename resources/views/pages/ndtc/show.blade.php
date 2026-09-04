@@ -4,122 +4,122 @@
 
 @section('styles')
 <style>
-/* ── Order hero ──────────────────────────────── */
-.order-hero{background:#293042;border-radius:.25rem;padding:1rem 1.25rem;margin-bottom:1rem}
-.hero-vin{font-family:"Courier New",monospace;font-size:.72rem;color:rgba(255,255,255,.4);letter-spacing:.08em}
-.hero-name{font-size:1rem;font-weight:600;color:#fff;margin:.2rem 0 0}
-.hero-meta{display:flex;flex-wrap:wrap;gap:1rem;margin-top:.5rem}
-.hero-meta-item{font-size:.72rem;color:rgba(255,255,255,.45);display:flex;align-items:center;gap:.3rem}
+    /* ── Order hero ──────────────────────────────── */
+    .order-hero{background:#293042;border-radius:.25rem;padding:1rem 1.25rem;margin-bottom:1rem}
+    .hero-vin{font-family:"Courier New",monospace;font-size:.72rem;color:rgba(255,255,255,.4);letter-spacing:.08em}
+    .hero-name{font-size:1rem;font-weight:600;color:#fff;margin:.2rem 0 0}
+    .hero-meta{display:flex;flex-wrap:wrap;gap:1rem;margin-top:.5rem}
+    .hero-meta-item{font-size:.72rem;color:rgba(255,255,255,.45);display:flex;align-items:center;gap:.3rem}
 
-/* ── Pipeline ────────────────────────────────── */
-.pipeline-wrap{background:#fff;border:1px solid #dee2e6;border-radius:.25rem;padding:.75rem 1rem;margin-bottom:1rem;overflow-x:auto}
-.pipeline{display:flex;align-items:center;min-width:500px}
-.pipe-step{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;position:relative}
-.pipe-step:not(:last-child)::after{content:'';position:absolute;top:12px;left:calc(50% + 15px);right:calc(-50% + 15px);height:1.5px;background:#dee2e6}
-.pipe-step.done::after{background:#3f80ea}
-.pipe-step.err::after{background:#d9534f}
-.pipe-dot{width:26px;height:26px;border-radius:50%;border:2px solid #dee2e6;background:#fff;display:flex;align-items:center;justify-content:center;font-size:.7rem;color:#adb5bd;z-index:1;flex-shrink:0}
-.pipe-step.done .pipe-dot{background:#3f80ea;border-color:#3f80ea;color:#fff}
-.pipe-step.active .pipe-dot{border-color:#3f80ea;color:#3f80ea}
-.pipe-step.err .pipe-dot{background:#fdf2f2;border-color:#d9534f;color:#d9534f}
-.pipe-label{font-size:.65rem;color:#adb5bd;text-align:center;white-space:nowrap;font-weight:500;line-height:1.2}
-.pipe-step.done .pipe-label{color:#3f80ea}
-.pipe-step.err  .pipe-label{color:#d9534f}
-.pipe-step.active .pipe-label{color:#3f80ea;font-weight:600}
+    /* ── Pipeline ────────────────────────────────── */
+    .pipeline-wrap{background:#fff;border:1px solid #dee2e6;border-radius:.25rem;padding:.75rem 1rem;margin-bottom:1rem;overflow-x:auto}
+    .pipeline{display:flex;align-items:center;min-width:500px}
+    .pipe-step{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;position:relative}
+    .pipe-step:not(:last-child)::after{content:'';position:absolute;top:12px;left:calc(50% + 15px);right:calc(-50% + 15px);height:1.5px;background:#dee2e6}
+    .pipe-step.done::after{background:#3f80ea}
+    .pipe-step.err::after{background:#d9534f}
+    .pipe-dot{width:26px;height:26px;border-radius:50%;border:2px solid #dee2e6;background:#fff;display:flex;align-items:center;justify-content:center;font-size:.7rem;color:#adb5bd;z-index:1;flex-shrink:0}
+    .pipe-step.done .pipe-dot{background:#3f80ea;border-color:#3f80ea;color:#fff}
+    .pipe-step.active .pipe-dot{border-color:#3f80ea;color:#3f80ea}
+    .pipe-step.err .pipe-dot{background:#fdf2f2;border-color:#d9534f;color:#d9534f}
+    .pipe-label{font-size:.65rem;color:#adb5bd;text-align:center;white-space:nowrap;font-weight:500;line-height:1.2}
+    .pipe-step.done .pipe-label{color:#3f80ea}
+    .pipe-step.err  .pipe-label{color:#d9534f}
+    .pipe-step.active .pipe-label{color:#3f80ea;font-weight:600}
 
-/* ── Stat cards ──────────────────────────────── */
-.stat-card{background:#fff;border:1px solid #dee2e6;border-radius:.25rem;padding:.875rem 1rem}
-.stat-label{font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:#adb5bd;font-weight:600;margin-bottom:4px}
-.stat-value{font-size:1.15rem;font-weight:600;color:#212529;line-height:1}
-.stat-sub{font-size:.7rem;color:#6c757d;margin-top:3px}
+    /* ── Stat cards ──────────────────────────────── */
+    .stat-card{background:#fff;border:1px solid #dee2e6;border-radius:.25rem;padding:.875rem 1rem}
+    .stat-label{font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:#adb5bd;font-weight:600;margin-bottom:4px}
+    .stat-value{font-size:1.15rem;font-weight:600;color:#212529;line-height:1}
+    .stat-sub{font-size:.7rem;color:#6c757d;margin-top:3px}
 
-/* ── Badge-status ────────────────────────────── */
-.badge-status{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:12px;font-size:.72rem;font-weight:600}
-.badge-rejected{background:#fdf2f2;color:#d9534f}
-.badge-approved{background:#f0faf4;color:#4bbf73}
-.badge-processing{background:#eff6ff;color:#3f80ea}
-.badge-draft{background:#f8f9fa;color:#6c757d;border:1px solid #dee2e6}
-.badge-review{background:#fff8e1;color:#856404}
-.badge-hold{background:#fff8e1;color:#856404}
-.badge-rtf{background:#f0faf4;color:#4bbf73}
-.badge-cancel{background:#f8f9fa;color:#6c757d}
+    /* ── Badge-status ────────────────────────────── */
+    .badge-status{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:12px;font-size:.72rem;font-weight:600}
+    .badge-rejected{background:#fdf2f2;color:#d9534f}
+    .badge-approved{background:#f0faf4;color:#4bbf73}
+    .badge-processing{background:#eff6ff;color:#3f80ea}
+    .badge-draft{background:#f8f9fa;color:#6c757d;border:1px solid #dee2e6}
+    .badge-review{background:#fff8e1;color:#856404}
+    .badge-hold{background:#fff8e1;color:#856404}
+    .badge-rtf{background:#f0faf4;color:#4bbf73}
+    .badge-cancel{background:#f8f9fa;color:#6c757d}
 
-/* ── Entity cards ────────────────────────────── */
-.entity-card{background:#f8f9fa;border:1px solid #dee2e6;border-radius:.25rem;padding:.75rem;height:100%}
-.entity-type{font-size:.62rem;text-transform:uppercase;letter-spacing:.08em;color:#adb5bd;font-weight:600;margin-bottom:3px}
-.entity-name{font-size:.8rem;font-weight:600;color:#212529}
-.entity-addr{font-size:.72rem;color:#6c757d;margin-top:3px;line-height:1.5}
+    /* ── Entity cards ────────────────────────────── */
+    .entity-card{background:#f8f9fa;border:1px solid #dee2e6;border-radius:.25rem;padding:.75rem;height:100%}
+    .entity-type{font-size:.62rem;text-transform:uppercase;letter-spacing:.08em;color:#adb5bd;font-weight:600;margin-bottom:3px}
+    .entity-name{font-size:.8rem;font-weight:600;color:#212529}
+    .entity-addr{font-size:.72rem;color:#6c757d;margin-top:3px;line-height:1.5}
 
-/* ── Section cards ───────────────────────────── */
-.section-card{background:#fff;border:1px solid #dee2e6;border-radius:.25rem}
-.section-card .card-header{background:#fff;border-bottom:1px solid #dee2e6;padding:.65rem 1rem;display:flex;align-items:center;gap:8px}
-.section-card .card-header .header-icon{width:26px;height:26px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:.72rem;flex-shrink:0}
-.section-card .card-header h6{font-size:.8rem;font-weight:600;color:#212529;margin:0}
+    /* ── Section cards ───────────────────────────── */
+    .section-card{background:#fff;border:1px solid #dee2e6;border-radius:.25rem}
+    .section-card .card-header{background:#fff;border-bottom:1px solid #dee2e6;padding:.65rem 1rem;display:flex;align-items:center;gap:8px}
+    .section-card .card-header .header-icon{width:26px;height:26px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:.72rem;flex-shrink:0}
+    .section-card .card-header h6{font-size:.8rem;font-weight:600;color:#212529;margin:0}
 
-/* ── Info rows ───────────────────────────────── */
-.info-row{display:flex;justify-content:space-between;align-items:flex-start;padding:5px 0;border-bottom:1px solid #f5f7fb;gap:8px}
-.info-row:last-child{border-bottom:none;padding-bottom:0}
-.info-key{font-size:.75rem;color:#6c757d;flex-shrink:0;max-width:45%}
-.info-val{font-size:.78rem;color:#212529;font-weight:500;text-align:right;word-break:break-all}
-.info-val.mono{font-family:"Courier New",monospace;font-size:.7rem;letter-spacing:.04em}
+    /* ── Info rows ───────────────────────────────── */
+    .info-row{display:flex;justify-content:space-between;align-items:flex-start;padding:5px 0;border-bottom:1px solid #f5f7fb;gap:8px}
+    .info-row:last-child{border-bottom:none;padding-bottom:0}
+    .info-key{font-size:.75rem;color:#6c757d;flex-shrink:0;max-width:45%}
+    .info-val{font-size:.78rem;color:#212529;font-weight:500;text-align:right;word-break:break-all}
+    .info-val.mono{font-family:"Courier New",monospace;font-size:.7rem;letter-spacing:.04em}
 
-/* ── Section divider ─────────────────────────── */
-.section-divider{font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#adb5bd;display:flex;align-items:center;gap:8px;margin:.75rem 0 .5rem}
-.section-divider::after{content:'';flex:1;height:1px;background:#f0f0f0}
+    /* ── Section divider ─────────────────────────── */
+    .section-divider{font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#adb5bd;display:flex;align-items:center;gap:8px;margin:.75rem 0 .5rem}
+    .section-divider::after{content:'';flex:1;height:1px;background:#f0f0f0}
 
-/* ── Documents ───────────────────────────────── */
-.doc-item{display:flex;align-items:center;gap:10px;padding:.75rem;background:#f8f9fa;border:1px solid #dee2e6;border-radius:.25rem;margin-bottom:.5rem}
-.doc-item:hover{border-color:#adb5bd}
-.doc-item.doc-rejected{background:#fdf2f2;border-color:#f5c6cb}
-.doc-icon{width:34px;height:34px;border-radius:6px;background:#fff;border:1px solid #dee2e6;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.doc-icon.rejected{background:#fdf2f2;border-color:#f5c6cb}
-.doc-info{flex:1;min-width:0}
-.doc-name{font-size:.8rem;font-weight:600;color:#212529;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.doc-meta{font-size:.7rem;color:#6c757d;margin-top:2px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.doc-reason{font-size:.72rem;color:#d9534f;margin-top:4px;display:flex;align-items:flex-start;gap:4px}
-.doc-actions{display:flex;gap:5px;flex-shrink:0}
-.doc-upload-zone{border:2px dashed #dee2e6;border-radius:.25rem;padding:1.25rem;text-align:center;color:#adb5bd;font-size:.8rem;cursor:pointer}
-.doc-upload-zone:hover{border-color:#3f80ea;color:#3f80ea;background:#eff6ff}
+    /* ── Documents ───────────────────────────────── */
+    .doc-item{display:flex;align-items:center;gap:10px;padding:.75rem;background:#f8f9fa;border:1px solid #dee2e6;border-radius:.25rem;margin-bottom:.5rem}
+    .doc-item:hover{border-color:#adb5bd}
+    .doc-item.doc-rejected{background:#fdf2f2;border-color:#f5c6cb}
+    .doc-icon{width:34px;height:34px;border-radius:6px;background:#fff;border:1px solid #dee2e6;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .doc-icon.rejected{background:#fdf2f2;border-color:#f5c6cb}
+    .doc-info{flex:1;min-width:0}
+    .doc-name{font-size:.8rem;font-weight:600;color:#212529;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .doc-meta{font-size:.7rem;color:#6c757d;margin-top:2px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .doc-reason{font-size:.72rem;color:#d9534f;margin-top:4px;display:flex;align-items:flex-start;gap:4px}
+    .doc-actions{display:flex;gap:5px;flex-shrink:0}
+    .doc-upload-zone{border:2px dashed #dee2e6;border-radius:.25rem;padding:1.25rem;text-align:center;color:#adb5bd;font-size:.8rem;cursor:pointer}
+    .doc-upload-zone:hover{border-color:#3f80ea;color:#3f80ea;background:#eff6ff}
 
-/* ── Timeline ────────────────────────────────── */
-.tl-item{display:flex;gap:10px;padding-bottom:1rem;position:relative}
-.tl-item:not(:last-child) .tl-line{position:absolute;left:14px;top:28px;bottom:0;width:1px;background:#dee2e6}
-.tl-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;flex-shrink:0;z-index:1;border:1px solid #dee2e6;background:#f8f9fa}
-.tl-dot.t-red{background:#fdf2f2;border-color:#f5c6cb;color:#d9534f}
-.tl-dot.t-blue{background:#eff6ff;border-color:#bbd6fb;color:#3f80ea}
-.tl-dot.t-green{background:#f0faf4;border-color:#b8e0c4;color:#4bbf73}
-.tl-dot.t-gray{background:#f8f9fa;border-color:#dee2e6;color:#adb5bd}
-.tl-dot.t-amber{background:#fff8e1;border-color:#ffeaa7;color:#856404}
-.tl-body{flex:1;padding-top:3px}
-.tl-event{font-size:.8rem;font-weight:600;color:#212529}
-.tl-time{font-size:.7rem;color:#adb5bd;margin-top:1px}
-.tl-detail{font-size:.75rem;color:#495057;margin-top:5px;background:#f8f9fa;border:1px solid #dee2e6;border-radius:4px;padding:6px 9px;line-height:1.55}
+    /* ── Timeline ────────────────────────────────── */
+    .tl-item{display:flex;gap:10px;padding-bottom:1rem;position:relative}
+    .tl-item:not(:last-child) .tl-line{position:absolute;left:14px;top:28px;bottom:0;width:1px;background:#dee2e6}
+    .tl-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;flex-shrink:0;z-index:1;border:1px solid #dee2e6;background:#f8f9fa}
+    .tl-dot.t-red{background:#fdf2f2;border-color:#f5c6cb;color:#d9534f}
+    .tl-dot.t-blue{background:#eff6ff;border-color:#bbd6fb;color:#3f80ea}
+    .tl-dot.t-green{background:#f0faf4;border-color:#b8e0c4;color:#4bbf73}
+    .tl-dot.t-gray{background:#f8f9fa;border-color:#dee2e6;color:#adb5bd}
+    .tl-dot.t-amber{background:#fff8e1;border-color:#ffeaa7;color:#856404}
+    .tl-body{flex:1;padding-top:3px}
+    .tl-event{font-size:.8rem;font-weight:600;color:#212529}
+    .tl-time{font-size:.7rem;color:#adb5bd;margin-top:1px}
+    .tl-detail{font-size:.75rem;color:#495057;margin-top:5px;background:#f8f9fa;border:1px solid #dee2e6;border-radius:4px;padding:6px 9px;line-height:1.55}
 
-/* ── Rejection block ─────────────────────────── */
-.rejection-block{background:#fdf2f2;border:1px solid #f5c6cb;border-radius:.25rem;padding:.875rem;margin-bottom:.75rem}
-.rejection-title{font-size:.8rem;font-weight:600;color:#d9534f;margin-bottom:5px;display:flex;align-items:center;gap:5px}
-.rejection-text{font-size:.78rem;color:#212529;line-height:1.6;background:#fff;border-radius:4px;padding:.5rem .75rem;white-space:pre-wrap;border:1px solid #f5c6cb}
+    /* ── Rejection block ─────────────────────────── */
+    .rejection-block{background:#fdf2f2;border:1px solid #f5c6cb;border-radius:.25rem;padding:.875rem;margin-bottom:.75rem}
+    .rejection-title{font-size:.8rem;font-weight:600;color:#d9534f;margin-bottom:5px;display:flex;align-items:center;gap:5px}
+    .rejection-text{font-size:.78rem;color:#212529;line-height:1.6;background:#fff;border-radius:4px;padding:.5rem .75rem;white-space:pre-wrap;border:1px solid #f5c6cb}
 
-.alert {
-    padding: 10px;
-}
+    .alert {
+        padding: 10px;
+    }
 </style>
 @endsection
 @php
     // ── Extract payload data ──────────────────────────────────────
-    $payload   = $order->order_payload ?? [];
-    $evidence  = $payload['evidence'] ?? [];
-    $veh       = $evidence['vehicle'] ?? [];
-    $title     = $evidence['existingTitle'] ?? [];
+    $data      = $order->displayData();
+    $veh       = $data['vehicle'] ?? [];
+    $title     = $data['title'] ?? [];
     $odo       = $veh['odometer'] ?? [];
     $odoRead   = $odo['reading'] ?? [];
-    $disposing = $evidence['disposingEntities'][0] ?? [];
+    $disposing = $data['disposing'] ?? [];
     $dispAddr  = $disposing['physicalAddress'] ?? [];
-    $acquiring = $payload['acquiringEntity'] ?? [];
+    $acquiring = $data['acquiring'] ?? [];
     $acqAddr   = $acquiring['physicalAddress'] ?? [];
-    $titleWork = $payload['titleWorkEntity'] ?? [];
+    $titleWork = $data['titleWork'] ?? [];
     $rep       = $titleWork['representative'] ?? [];
 
+    // dd($payload);
     // ── Status helpers ────────────────────────────────────────────
     $statusClass = match($order->status) {
         'REJECTED'                    => 'badge-rejected',
@@ -203,8 +203,9 @@
     @elseif(session('account'))
         <x-alert type="success">{{ session('account') }}</x-alert>
     @endif
+
 {{-- ══ PAGE HEADING ═══════════════════════════════════════════ --}}
-<div class="d-flex align-items-start justify-content-between mb-3">
+<div class="d-flex align-items-start justify-content-between mb-3 flex-wrap" style="gap:1rem">
     <div>
         <h1 class="h3 mb-1">Order Detail</h1>
         <p class="text-muted mb-0" style="font-size:.8rem">
@@ -213,9 +214,28 @@
             Internal ref: <code>{{ $order->correlation_id }}</code>
         </p>
     </div>
-    <a href="{{ route('ndtc.orders.index') }}" class="btn btn-secondary btn-sm">
-        &larr; All Orders
-    </a>
+
+    <div class="d-flex align-items-center" style="gap:.75rem">
+        <div class="d-flex flex-column align-items-end" style="gap:2px">
+            <form action="{{ route('ndtc.orders.sync', $order) }}" method="POST" class="d-inline">
+                @csrf
+                <button type="submit" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-sync mr-1"></i>Sync from CHAMP
+                </button>
+            </form>
+            <small class="text-muted" style="font-size:.68rem">
+                @if($order->last_synced_at)
+                    Last synced {{ $order->last_synced_at->diffForHumans() }}
+                @else
+                    Never synced
+                @endif
+            </small>
+        </div>
+
+        <a href="{{ route('ndtc.orders.index') }}" class="btn btn-secondary btn-sm">
+            &larr; All Orders
+        </a>
+    </div>
 </div>
 
 {{-- ══ ALERT BANNERS ══════════════════════════════════════════ --}}
@@ -569,7 +589,7 @@
             <div class="col-md-4 mb-2">
                 <div class="entity-card">
                     <div class="entity-type"><i class="fas fa-shield-alt mr-1"></i> Title work entity</div>
-                    <div class="entity-name">{{ $acquiring['name'] ?? config('ndtc.acquiring_name') }}</div>
+                    <div class="entity-name">{{ $titleWork['name'] ?? config('ndtc.title_work_name') }}</div>
                     <div class="entity-addr">
                         Agent: {{ ($rep['firstName'] ?? '') . ' ' . ($rep['lastName'] ?? '') }}<br>
                         {{ $rep['email'] ?? '' }}<br>
@@ -732,12 +752,12 @@
                         </div>
                         <div class="info-row">
                             <span class="info-key">Created at</span>
-                            <span class="info-val">{{ $order->created_at->format('M d, Y H:i') }} UTC</span>
+                            <span class="info-val">{{ $order->created_at->format('M d, Y H:i') }}</span>
                         </div>
                         @if($order->finalized_at)
                             <div class="info-row">
                                 <span class="info-key">Finalized at</span>
-                                <span class="info-val">{{ $order->finalized_at->format('M d, Y H:i') }} UTC</span>
+                                <span class="info-val">{{ $order->finalized_at->format('M d, Y H:i') }}</span>
                             </div>
                         @endif
                         @if($isApproved && $order->new_title_number)
@@ -830,190 +850,199 @@
     {{-- ══ TAB 2: DOCUMENTS ══════════════════════════════════ --}}
     <div class="tab-pane fade" id="tab-documents">
 
-        @php
-            $failedDocs   = $order->documents->where('status', 'FAILED');
-            $uploadedDocs = $order->documents->whereNotIn('status', ['FAILED','REPLACED']);
-        @endphp
+    @php
+        $failedDocs   = $order->documents->where('status', 'FAILED');
+        $uploadedDocs = $order->documents->whereNotIn('status', ['FAILED','REPLACED']);
+    @endphp
 
-        @if($failedDocs->count() > 0)
-            <div class="alert alert-warning d-flex align-items-start mb-3">
-                <i class="fas fa-exclamation-triangle mr-2 mt-1" style="flex-shrink:0"></i>
-                <div>
-                    <strong>{{ $failedDocs->count() }} document(s) require attention.</strong>
-                    Replace the flagged document(s) before resubmitting.
+    @if($failedDocs->count() > 0)
+        <div class="alert alert-warning d-flex align-items-start mb-3">
+            <i class="fas fa-exclamation-triangle mr-2 mt-1" style="flex-shrink:0"></i>
+            <div>
+                <strong>{{ $failedDocs->count() }} document(s) require attention.</strong>
+                Replace the flagged document(s) before resubmitting, or delete if no longer needed.
+            </div>
+        </div>
+
+        <div class="section-divider">
+            <i class="fas fa-exclamation-circle text-danger"></i> Requires Action
+        </div>
+
+        @foreach($failedDocs as $doc)
+            <div class="doc-item doc-rejected mb-2">
+                <div class="doc-icon rejected">
+                    <i class="fas fa-file-pdf" style="color:#d9534f"></i>
+                </div>
+                <div class="doc-info">
+                    <div class="doc-name">{{ $doc->file_display_name ?? $doc->document_content }}</div>
+                    <div class="doc-meta">
+                        <span class="badge badge-danger" style="font-size:.65rem">
+                            <i class="fas fa-times mr-1"></i>Failed
+                        </span>
+                        @if($doc->file_mime_type) <span>{{ strtoupper(explode('/', $doc->file_mime_type)[1] ?? $doc->file_mime_type) }}</span> @endif
+                        @if($doc->file_size_bytes) <span>{{ round($doc->file_size_bytes / 1024, 1) }} KB</span> @endif
+                        @if($doc->uploaded_at) <span>Uploaded {{ $doc->uploaded_at->format('M d, Y') }}</span> @endif
+                    </div>
+                    @if($doc->upload_error)
+                        <div class="doc-reason">
+                            <i class="fas fa-exclamation-circle" style="flex-shrink:0;margin-top:1px"></i>
+                            {{ $doc->upload_error }}
+                        </div>
+                    @endif
+                </div>
+                <div class="doc-actions">
+                    @if($doc->canBeReplaced())
+                        <button class="btn btn-sm btn-danger btn-xs"
+                                data-toggle="modal"
+                                data-target="#replaceDocModal"
+                                data-doc-id="{{ $doc->id }}"
+                                data-doc-content="{{ $doc->document_content }}">
+                            <i class="fas fa-upload mr-1"></i>Replace
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger btn-xs"
+                                data-toggle="modal"
+                                data-target="#deleteDocModal"
+                                data-doc-id="{{ $doc->id }}"
+                                data-doc-name="{{ $doc->file_display_name ?? $doc->document_content }}">
+                            <i class="fas fa-trash mr-1"></i>Delete
+                        </button>
+                    @endif
                 </div>
             </div>
+        @endforeach
+    @endif
 
-            <div class="section-divider">
-                <i class="fas fa-exclamation-circle text-danger"></i> Requires Action
+    @if($uploadedDocs->count() > 0)
+        <div class="section-divider">
+            <i class="fas fa-check-circle text-success"></i> Uploaded Documents
+        </div>
+
+        @foreach($uploadedDocs as $doc)
+            <div class="doc-item">
+                <div class="doc-icon">
+                    <i class="fas fa-file-pdf" style="color:#3f80ea"></i>
+                </div>
+                <div class="doc-info">
+                    <div class="doc-name">{{ $doc->file_display_name ?? $doc->document_content }}</div>
+                    <div class="doc-meta">
+                        <span class="badge badge-success" style="font-size:.65rem">
+                            <i class="fas fa-check mr-1"></i>{{ ucfirst(strtolower($doc->status)) }}
+                        </span>
+                        @if($doc->file_mime_type)
+                            <span>{{ strtoupper(explode('/', $doc->file_mime_type)[1] ?? '') }}</span>
+                        @endif
+                        @if($doc->file_size_bytes)
+                            <span>{{ round($doc->file_size_bytes / 1024, 1) }} KB</span>
+                        @endif
+                        @if($doc->is_system_generated)
+                            <span class="text-muted">System generated</span>
+                        @elseif($doc->uploaded_at)
+                            <span>Uploaded {{ $doc->uploaded_at->format('M d, Y') }}</span>
+                        @endif
+                        <span class="badge badge-secondary" style="font-size:.6rem">
+                            {{ $doc->document_content }}
+                        </span>
+                    </div>
+                </div>
+                <div class="doc-actions">
+                    @if($doc->ndtc_document_id)
+                        <a href="{{ route('ndtc.orders.documents.view', [$order, $doc]) }}"
+                           class="btn btn-sm btn-outline-secondary btn-xs" target="_blank">
+                            <i class="fas fa-eye mr-1"></i>View
+                        </a>
+                    @endif
+                    @if($doc->canBeReplaced() && !$order->isTerminal())
+                        <button class="btn btn-sm btn-outline-primary btn-xs"
+                                data-toggle="modal"
+                                data-target="#replaceDocModal"
+                                data-doc-id="{{ $doc->id }}"
+                                data-doc-content="{{ $doc->document_content }}">
+                            <i class="fas fa-upload"></i>
+                        </button>
+                    @endif
+                </div>
             </div>
+        @endforeach
+    @endif
 
-            @foreach($failedDocs as $doc)
-                <div class="doc-item doc-rejected mb-2">
-                    <div class="doc-icon rejected">
-                        <i class="fas fa-file-pdf" style="color:#d9534f"></i>
-                    </div>
-                    <div class="doc-info">
-                        <div class="doc-name">{{ $doc->file_display_name ?? $doc->document_content }}</div>
-                        <div class="doc-meta">
-                            <span class="badge badge-danger" style="font-size:.65rem">
-                                <i class="fas fa-times mr-1"></i>Failed
-                            </span>
-                            @if($doc->file_mime_type) <span>{{ strtoupper(explode('/', $doc->file_mime_type)[1] ?? $doc->file_mime_type) }}</span> @endif
-                            @if($doc->file_size_bytes) <span>{{ round($doc->file_size_bytes / 1024, 1) }} KB</span> @endif
-                            @if($doc->uploaded_at) <span>Uploaded {{ $doc->uploaded_at->format('M d, Y') }}</span> @endif
-                        </div>
-                        @if($doc->upload_error)
-                            <div class="doc-reason">
-                                <i class="fas fa-exclamation-circle" style="flex-shrink:0;margin-top:1px"></i>
-                                {{ $doc->upload_error }}
-                            </div>
-                        @endif
-                    </div>
-                    <div class="doc-actions">
-                        @if($doc->canBeReplaced())
-                            <button class="btn btn-sm btn-danger btn-xs"
-                                    data-toggle="modal"
-                                    data-target="#replaceDocModal"
-                                    data-doc-id="{{ $doc->id }}"
-                                    data-doc-content="{{ $doc->document_content }}">
-                                <i class="fas fa-upload mr-1"></i>Replace
-                            </button>
-                        @endif
+    @if(!$order->isTerminal())
+        <div class="section-divider mt-3"><i class="fas fa-plus"></i> Add More</div>
+        <form action="{{ route('ndtc.orders.documents.store', $order) }}"
+              method="POST"
+              enctype="multipart/form-data">
+            @csrf
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                      <label class="form-label small font-weight-bold">Document type</label>
+                      <select class="form-control form-control-sm" name="document_content">
+                          <optgroup label="— Common for TNL orders —">
+                              <option value="TITLE_FRONT_AND_BACK">Title Front and Back</option>
+                              <option value="TITLE_FRONT">Title Front only</option>
+                              <option value="TITLE_BACK">Title Back only</option>
+                              <option value="POWER_OF_ATTORNEY">Power of Attorney</option>
+                              <option value="SECURE_ELECTRONIC_POWER_OF_ATTORNEY">Secure Electronic Power of Attorney</option>
+                              <option value="ODOMETER_DISCLOSURE">Odometer Disclosure</option>
+                              <option value="POWER_OF_ATTORNEY_WITH_ODOMETER_DISCLOSURE">POA with Odometer Disclosure</option>
+                              <option value="BILL_OF_SALE">Bill of Sale</option>
+                              <option value="CERTIFICATE_OF_COMPLETION">Certificate of Completion</option>
+                          </optgroup>
+                          <optgroup label="— Supporting documents —">
+                              <option value="LIEN_RELEASE">Lien Release</option>
+                              <option value="LOAN_AGREEMENT">Loan Agreement</option>
+                              <option value="SECURITY_AGREEMENT">Security Agreement</option>
+                              <option value="TITLE_REASSIGNMENT">Title Reassignment</option>
+                              <option value="VIN_VERIFICATION">VIN Verification</option>
+                              <option value="MANUFACTURER_CERTIFICATE">Manufacturer Certificate</option>
+                              <option value="INSURANCE_SETTLEMENT">Insurance Settlement</option>
+                          </optgroup>
+                          <optgroup label="— Statements and corrections —">
+                              <option value="STATEMENT_OF_NO_TITLE">Statement of No Title</option>
+                              <option value="STATEMENT_OF_REPOSSESSION">Statement of Repossession</option>
+                              <option value="STATEMENT_OF_MISSING_EVIDENCE">Statement of Missing Evidence</option>
+                              <option value="STATEMENT_OF_IDENTITY">Statement of Identity</option>
+                              <option value="REQUEST_FOR_MISSING_EVIDENCE">Request for Missing Evidence</option>
+                              <option value="LETTER_OF_CORRECTION">Letter of Correction</option>
+                              <option value="ONE_AND_THE_SAME">One and the Same</option>
+                              <option value="DOING_BUSINESS_AS">Doing Business As</option>
+                              <option value="DECLARATION_PAGE">Declaration Page</option>
+                          </optgroup>
+                          <optgroup label="— Reports —">
+                              <option value="MVR_REPORT">MVR Report</option>
+                              <option value="NMVTIS_REPORT">NMVTIS Report</option>
+                          </optgroup>
+                          <optgroup label="— Other —">
+                              <option value="OTHER_EVIDENCE">Other Evidence</option>
+                          </optgroup>
+                      </select>
+                      <small class="form-text text-muted">
+                          For most Copart / IAAI TNL orders you will only need
+                          <strong>Title Front and Back</strong> and <strong>Power of Attorney</strong>.
+                      </small>
+                  </div>
+                </div>
+                <div class="col-md-5">
+                    <div class="form-group">
+                        <label class="form-label small font-weight-bold">File</label>
+                        <input type="file" class="form-control-file" name="document"
+                               accept=".pdf,.jpg,.jpeg,.png">
+                        <small class="form-text text-muted">PDF, JPG, PNG · Max 20MB · Min 300 DPI</small>
                     </div>
                 </div>
-            @endforeach
-        @endif
-
-        @if($uploadedDocs->count() > 0)
-            <div class="section-divider">
-                <i class="fas fa-check-circle text-success"></i> Uploaded Documents
+                <div class="col-md-3 d-flex align-items-end">
+                    <div class="form-group w-100">
+                        <button type="submit" class="btn btn-primary btn-sm btn-block">
+                            <i class="fas fa-upload mr-1"></i> Upload Document
+                        </button>
+                    </div>
+                </div>
             </div>
+        </form>
+    @endif
 
-            @foreach($uploadedDocs as $doc)
-                <div class="doc-item">
-                    <div class="doc-icon">
-                        <i class="fas fa-file-pdf" style="color:#3f80ea"></i>
-                    </div>
-                    <div class="doc-info">
-                        <div class="doc-name">{{ $doc->file_display_name ?? $doc->document_content }}</div>
-                        <div class="doc-meta">
-                            <span class="badge badge-success" style="font-size:.65rem">
-                                <i class="fas fa-check mr-1"></i>{{ ucfirst(strtolower($doc->status)) }}
-                            </span>
-                            @if($doc->file_mime_type)
-                                <span>{{ strtoupper(explode('/', $doc->file_mime_type)[1] ?? '') }}</span>
-                            @endif
-                            @if($doc->file_size_bytes)
-                                <span>{{ round($doc->file_size_bytes / 1024, 1) }} KB</span>
-                            @endif
-                            @if($doc->is_system_generated)
-                                <span class="text-muted">System generated</span>
-                            @elseif($doc->uploaded_at)
-                                <span>Uploaded {{ $doc->uploaded_at->format('M d, Y') }}</span>
-                            @endif
-                            <span class="badge badge-secondary" style="font-size:.6rem">
-                                {{ $doc->document_content }}
-                            </span>
-                        </div>
-                    </div>
-                    <div class="doc-actions">
-                        @if($doc->ndtc_document_id)
-                            <a href="{{ route('ndtc.orders.documents.view', [$order, $doc]) }}"
-                               class="btn btn-sm btn-outline-secondary btn-xs" target="_blank">
-                                <i class="fas fa-eye mr-1"></i>View
-                            </a>
-                        @endif
-                        @if($doc->canBeReplaced() && !$order->isTerminal())
-                            <button class="btn btn-sm btn-outline-primary btn-xs"
-                                    data-toggle="modal"
-                                    data-target="#replaceDocModal"
-                                    data-doc-id="{{ $doc->id }}"
-                                    data-doc-content="{{ $doc->document_content }}">
-                                <i class="fas fa-upload"></i>
-                            </button>
-                        @endif
-                    </div>
-                </div>
-            @endforeach
-        @endif
+</div>{{-- /tab-documents --}}
 
-        @if(!$order->isTerminal())
-            <div class="section-divider mt-3"><i class="fas fa-plus"></i> Add More</div>
-            <form action="{{ route('ndtc.orders.documents.store', $order) }}"
-                  method="POST"
-                  enctype="multipart/form-data">
-                @csrf
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="form-group">
-                          <label class="form-label small font-weight-bold">Document type</label>
-                          <select class="form-control form-control-sm" name="document_content">
-                              <optgroup label="— Common for TNL orders —">
-                                  <option value="TITLE_FRONT_AND_BACK">Title Front and Back</option>
-                                  <option value="TITLE_FRONT">Title Front only</option>
-                                  <option value="TITLE_BACK">Title Back only</option>
-                                  <option value="POWER_OF_ATTORNEY">Power of Attorney</option>
-                                  <option value="SECURE_ELECTRONIC_POWER_OF_ATTORNEY">Secure Electronic Power of Attorney</option>
-                                  <option value="ODOMETER_DISCLOSURE">Odometer Disclosure</option>
-                                  <option value="POWER_OF_ATTORNEY_WITH_ODOMETER_DISCLOSURE">POA with Odometer Disclosure</option>
-                                  <option value="BILL_OF_SALE">Bill of Sale</option>
-                                  <option value="CERTIFICATE_OF_COMPLETION">Certificate of Completion</option>
-                              </optgroup>
-                              <optgroup label="— Supporting documents —">
-                                  <option value="LIEN_RELEASE">Lien Release</option>
-                                  <option value="LOAN_AGREEMENT">Loan Agreement</option>
-                                  <option value="SECURITY_AGREEMENT">Security Agreement</option>
-                                  <option value="TITLE_REASSIGNMENT">Title Reassignment</option>
-                                  <option value="VIN_VERIFICATION">VIN Verification</option>
-                                  <option value="MANUFACTURER_CERTIFICATE">Manufacturer Certificate</option>
-                                  <option value="INSURANCE_SETTLEMENT">Insurance Settlement</option>
-                              </optgroup>
-                              <optgroup label="— Statements and corrections —">
-                                  <option value="STATEMENT_OF_NO_TITLE">Statement of No Title</option>
-                                  <option value="STATEMENT_OF_REPOSSESSION">Statement of Repossession</option>
-                                  <option value="STATEMENT_OF_MISSING_EVIDENCE">Statement of Missing Evidence</option>
-                                  <option value="STATEMENT_OF_IDENTITY">Statement of Identity</option>
-                                  <option value="REQUEST_FOR_MISSING_EVIDENCE">Request for Missing Evidence</option>
-                                  <option value="LETTER_OF_CORRECTION">Letter of Correction</option>
-                                  <option value="ONE_AND_THE_SAME">One and the Same</option>
-                                  <option value="DOING_BUSINESS_AS">Doing Business As</option>
-                                  <option value="DECLARATION_PAGE">Declaration Page</option>
-                              </optgroup>
-                              <optgroup label="— Reports —">
-                                  <option value="MVR_REPORT">MVR Report</option>
-                                  <option value="NMVTIS_REPORT">NMVTIS Report</option>
-                              </optgroup>
-                              <optgroup label="— Other —">
-                                  <option value="OTHER_EVIDENCE">Other Evidence</option>
-                              </optgroup>
-                          </select>
-                          <small class="form-text text-muted">
-                              For most Copart / IAAI TNL orders you will only need
-                              <strong>Title Front and Back</strong> and <strong>Power of Attorney</strong>.
-                          </small>
-                      </div>
-                    </div>
-                    <div class="col-md-5">
-                        <div class="form-group">
-                            <label class="form-label small font-weight-bold">File</label>
-                            <input type="file" class="form-control-file" name="document"
-                                   accept=".pdf,.jpg,.jpeg,.png">
-                            <small class="form-text text-muted">PDF, JPG, PNG · Max 20MB · Min 300 DPI</small>
-                        </div>
-                    </div>
-                    <div class="col-md-3 d-flex align-items-end">
-                        <div class="form-group w-100">
-                            <button type="submit" class="btn btn-primary btn-sm btn-block">
-                                <i class="fas fa-upload mr-1"></i> Upload Document
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </form>
-        @endif
-
-    </div>{{-- /tab-documents --}}
+    {{-- /tab-documents --}}
 
     {{-- ══ TAB 3: TIMELINE ═══════════════════════════════════ --}}
     <div class="tab-pane fade" id="tab-timeline">
@@ -1268,6 +1297,36 @@
         </form>
     </div>
 </div>
+
+{{-- Delete document modal --}}
+<div class="modal fade" id="deleteDocModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <form action="" method="POST" id="deleteDocForm">
+            @csrf
+            @method('DELETE')
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Delete Document</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-danger small mb-2">
+                        This will permanently delete <strong id="deleteDocName"></strong> from CHAMP.
+                        This action cannot be undone.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash mr-1"></i>Delete Document
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
 @endif
 
 
@@ -1284,6 +1343,14 @@ $(document).ready(function () {
         var docId = $(e.relatedTarget).data('doc-id');
         var baseUrl = '{{ route('ndtc.orders.documents.replace', [$order, '__DOC__']) }}';
         $('#replaceDocForm').attr('action', baseUrl.replace('__DOC__', docId));
+    });
+
+    $('#deleteDocModal').on('show.bs.modal', function (e) {
+        var docId   = $(e.relatedTarget).data('doc-id');
+        var docName = $(e.relatedTarget).data('doc-name');
+        var baseUrl = '{{ route('ndtc.orders.documents.delete', [$order, '__DOC__']) }}';
+        $('#deleteDocForm').attr('action', baseUrl.replace('__DOC__', docId));
+        $('#deleteDocName').text(docName);
     });
 
     // Switch to docs tab from alert link

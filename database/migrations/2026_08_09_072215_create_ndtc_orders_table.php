@@ -51,8 +51,10 @@ return new class extends Migration
 
             // ── JSON PAYLOADS ─────────────────────────────
             $table->json('order_payload')->nullable();
+            $table->json('champ_snapshot')->nullable();
             $table->json('rejection_reasons')->nullable();
             $table->json('last_webhook')->nullable();
+            $table->timestamp('last_synced_at')->nullable();
 
             $table->timestamps();
             $table->softDeletes();
