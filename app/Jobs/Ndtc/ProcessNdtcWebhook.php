@@ -47,7 +47,7 @@ class ProcessNdtcWebhook implements ShouldQueue
             'MANUAL_REVIEW'       => $this->onManualReview($order),
             'ON_HOLD'             => $this->onHold($order),
             'AGING_ORDER'         => $this->onAging($order),
-            'ORDER_CANCELLED'     => $this->onCancelled($order),
+            'ORDER_CANCELED'     => $this->onCancelled($order),
             'TITLE_TERMINATED'    => $this->onTitleTerminated($order),
             default               => Log::info('NDTC unknown event', ['event' => $event]),
         };
@@ -60,6 +60,7 @@ class ProcessNdtcWebhook implements ShouldQueue
             'finalized'         => false,
             'ready_to_finalize' => false,
             'ndtc_status'       => $this->payload['status'],
+            'ready_for_documents_at'       => now(),
         ]);
     }
 
@@ -69,6 +70,7 @@ class ProcessNdtcWebhook implements ShouldQueue
             'status'            => NdtcOrder::STATUS_READY_TO_FINALIZE,
             'ready_to_finalize' => true,
             'ndtc_status'       => $this->payload['status'],
+            'ready_to_finalize_at'       => now(),
         ]);
     }
 
@@ -124,17 +126,22 @@ class ProcessNdtcWebhook implements ShouldQueue
 
     private function onManualReview(NdtcOrder $order): void
     {
+        if (!$this->canTransitionTo($order, 'MANUAL_REVIEW')) return;
         $order->update(['status' => NdtcOrder::STATUS_MANUAL_REVIEW]);
     }
 
     private function onHold(NdtcOrder $order): void
     {
+        if (!$this->canTransitionTo($order, 'ON_HOLD')) return;
         $order->update(['status' => NdtcOrder::STATUS_ON_HOLD]);
     }
 
     private function onAging(NdtcOrder $order): void
     {
-        $order->update(['status' => NdtcOrder::STATUS_AGING]);
+        $order->update([
+            'is_aging'    => true,
+            'aging_since' => $order->aging_since ?? now(),
+        ]);
     }
 
     private function onCancelled(NdtcOrder $order): void

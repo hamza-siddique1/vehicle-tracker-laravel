@@ -36,7 +36,9 @@ class NdtcOrder extends Model
         'champ_snapshot',
         'rejection_reasons',
         'last_webhook',
-        'last_synced_at'
+        'last_synced_at',
+        'ready_for_documents_at',
+        'ready_to_finalize_at'
     ];
 
     protected $casts = [
@@ -64,7 +66,7 @@ class NdtcOrder extends Model
     const STATUS_APPROVED            = 'APPROVED';
     const STATUS_REJECTED            = 'REJECTED';
     const STATUS_AGING               = 'AGING';
-    const STATUS_CANCELLED           = 'CANCELLED';
+    const STATUS_CANCELLED           = 'CANCELED';
     const STATUS_TITLE_TERMINATED    = 'TITLE_TERMINATED';
     const STATUS_NOT_FOUND           = 'NOT_FOUND';
 
@@ -105,6 +107,11 @@ class NdtcOrder extends Model
     public function scopeByStatus($query, $status)
     {
         return $query->where('status', $status);
+    }
+
+    public function apiCallLogs()
+    {
+        return $this->hasMany(NdtcApiCallLog::class)->latest();
     }
 
     public function scopeActive($query)
@@ -190,5 +197,30 @@ class NdtcOrder extends Model
             'acquiring'  => $payload['acquiringEntity'] ?? [],
             'titleWork'  => $payload['titleWorkEntity'] ?? [],
         ];
+    }
+
+    private static function statusRank(string $status): int
+    {
+        return match ($status) {
+            self::STATUS_DRAFT               => 1,
+            self::STATUS_READY_FOR_DOCUMENTS => 2,
+            self::STATUS_READY_TO_FINALIZE   => 3,
+            self::STATUS_PROCESSING,
+            self::STATUS_MANUAL_REVIEW,
+            self::STATUS_ON_HOLD             => 5,
+            self::STATUS_REJECTED,
+            self::STATUS_CANCELLED           => 6,
+            self::STATUS_APPROVED,
+            self::STATUS_TITLE_TERMINATED    => 7,
+            default                          => 0,
+        };
+    }
+
+    public function applyStatusIfAdvanced(string $newStatus): void
+    {
+        if (self::statusRank($newStatus) >= self::statusRank($this->status)) {
+            $this->status = $newStatus;
+            $this->save();
+        }
     }
 }

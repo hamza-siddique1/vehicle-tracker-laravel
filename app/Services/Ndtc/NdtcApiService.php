@@ -1,9 +1,10 @@
 <?php
-// app/Services/Ndtc/NdtcApiService.php
 
 namespace App\Services\Ndtc;
 
 use App\Exceptions\Ndtc\NdtcApiException;
+use App\Models\NdtcApiCallLog;
+use App\Models\NdtcOrder;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -20,7 +21,7 @@ class NdtcApiService
 
     // ── ORDER ENDPOINTS ───────────────────────────────────────────
 
-    public function createOrder(array $payload, string $transactionType = 'TNL'): array
+    public function createOrder(array $payload, string $transactionType = 'TNL', ?string $correlationId = null): array
     {
         $endpoint = $this->getOrderEndpoint($transactionType);
         return $this->request('POST', $endpoint, $payload);
@@ -50,68 +51,63 @@ class NdtcApiService
         };
     }
 
-    public function updateOrder(string $ndtcOrderId, array $payload): array
+    public function updateOrder(string $ndtcOrderId, array $payload, ?NdtcOrder $order = null): array
     {
-        return $this->request('PUT', "/api/v3/clearinghouse/orders/{$ndtcOrderId}", $payload);
+        return $this->request('PUT', "/api/v3/clearinghouse/orders/{$ndtcOrderId}", $payload, $order);
     }
 
-    public function finalizeOrder(string $ndtcOrderId): array
+    public function finalizeOrder(string $ndtcOrderId, ?NdtcOrder $order = null): array
     {
-        return $this->request('POST', "/api/v3/clearinghouse/orders/{$ndtcOrderId}/finalize");
+        return $this->request('POST', "/api/v3/clearinghouse/orders/{$ndtcOrderId}/finalize", [], $order);
     }
 
-    public function cancelOrder(string $ndtcOrderId): void
+    public function cancelOrder(string $ndtcOrderId, ?NdtcOrder $order = null): void
     {
-        $this->request('DELETE', "/api/v3/clearinghouse/orders/{$ndtcOrderId}");
+        $this->request('DELETE', "/api/v3/clearinghouse/orders/{$ndtcOrderId}", [], $order);
     }
 
-    public function getOrder(string $ndtcOrderId): array
+    public function getOrder(string $ndtcOrderId, ?NdtcOrder $order = null): array
     {
-        return $this->request('GET', "/api/v3/clearinghouse/orders/{$ndtcOrderId}");
+        return $this->request('GET', "/api/v3/clearinghouse/orders/{$ndtcOrderId}", [], $order);
     }
 
     // ── DOCUMENT ENDPOINTS ────────────────────────────────────────
 
-    public function createDocument(string $ndtcOrderId, array $payload): array
+    public function createDocument(string $ndtcOrderId, array $payload, ?NdtcOrder $order = null): array
     {
-        return $this->request('POST', "/api/v1/orders/{$ndtcOrderId}/documents", $payload);
+        return $this->request('POST', "/api/v1/orders/{$ndtcOrderId}/documents", $payload, $order);
     }
 
-    public function getDocument(string $ndtcOrderId, string $documentId): array
+    public function getDocument(string $ndtcOrderId, string $documentId, ?NdtcOrder $order = null): array
     {
-        return $this->request('GET', "/api/v1/orders/{$ndtcOrderId}/documents/{$documentId}");
+        return $this->request('GET', "/api/v1/orders/{$ndtcOrderId}/documents/{$documentId}", [], $order);
     }
 
-    public function deleteDocument(string $ndtcOrderId, string $documentId): void
+    public function deleteDocument(string $ndtcOrderId, string $documentId, ?NdtcOrder $order = null): void
     {
-        $this->request('DELETE', "/api/v1/orders/{$ndtcOrderId}/documents/{$documentId}");
+        $this->request('DELETE', "/api/v1/orders/{$ndtcOrderId}/documents/{$documentId}", [], $order);
     }
 
     // ── UPLOAD TO AWS S3 PRESIGNED URL ────────────────────────────
-    // This goes directly to AWS — NOT through NDTC base URL
+    // Unchanged — this goes directly to AWS, not through NDTC, so it's
+    // outside the scope of this API-call logging (S3 responses aren't
+    // NDTC API responses). Log separately later if desired.
 
     public function uploadToPresignedUrl(string $presignedUrl, array $fields, string $filePath): void
     {
         $multipart = [];
 
-        // Add all fields from NDTC create document response
         foreach ($fields as $key => $value) {
-            $multipart[] = [
-                'name'     => $key,
-                'contents' => $value,
-            ];
+            $multipart[] = ['name' => $key, 'contents' => $value];
         }
 
-        // File must be last
         $multipart[] = [
             'name'     => 'file',
             'contents' => fopen($filePath, 'r'),
             'filename' => basename($filePath),
         ];
 
-        $response = Http::timeout(120)
-            ->asMultipart()
-            ->post($presignedUrl, $multipart);
+        $response = Http::timeout(120)->asMultipart()->post($presignedUrl, $multipart);
 
         if ($response->status() >= 300) {
             Log::error('NDTC S3 upload failed', [
@@ -134,9 +130,20 @@ class NdtcApiService
 
     // ── CORE HTTP METHOD ──────────────────────────────────────────
 
-    private function request(string $method, string $endpoint, array $payload = []): array
-    {
-        $url = $this->baseUrl . $endpoint;
+    private function request(
+        string $method,
+        string $endpoint,
+        array $payload = [],
+    ): array {
+        $url       = $this->baseUrl . $endpoint;
+        $startedAt = microtime(true);
+
+        $logData = [
+            'ndtc_order_id'   => $this->resolveOrderId($endpoint),
+            'method'          => $method,
+            'endpoint'        => $endpoint,
+            'request_payload' => $payload ?: null,
+        ];
 
         try {
             $response = Http::withToken($this->auth->getToken())
@@ -144,7 +151,6 @@ class NdtcApiService
                 ->timeout(60)
                 ->$method($url, $payload ?: null);
 
-            // Token expired — refresh and retry once
             if ($response->status() === 401) {
                 Log::info('NDTC token expired — refreshing and retrying');
                 $response = Http::withToken($this->auth->refreshToken())
@@ -153,9 +159,10 @@ class NdtcApiService
                     ->$method($url, $payload ?: null);
             }
 
+            $this->logCall($logData, $response->status(), $response->body(), null, $startedAt);
+
             if (!$response->successful()) {
                 Log::error('NDTC API error', [
-                    'method'   => $method,
                     'endpoint' => $endpoint,
                     'status'   => $response->status(),
                     'body'     => $response->body(),
@@ -167,6 +174,12 @@ class NdtcApiService
             return $response->json() ?? [];
 
         } catch (\Exception $e) {
+            // Only log here if we haven't already logged a response above
+            // (i.e. this is a network-level failure, not an HTTP error response)
+            if (!isset($response)) {
+                $this->logCall($logData, null, null, $e->getMessage(), $startedAt);
+            }
+
             Log::error('NDTC API request failed', [
                 'method'    => $method,
                 'endpoint'  => $endpoint,
@@ -174,5 +187,28 @@ class NdtcApiService
             ]);
             throw $e;
         }
+    }
+
+    private function logCall(array $logData, ?int $status, ?string $body, ?string $errorMessage, float $startedAt): void
+    {
+        try {
+            NdtcApiCallLog::create(array_merge($logData, [
+                'response_status' => $status,
+                'response_body'   => $body ? substr($body, 0, 65535) : null, // guard against extreme payloads
+                'error_message'   => $errorMessage,
+            ]));
+        } catch (\Exception $e) {
+            // Logging must never break the actual API call — just note it and move on
+            Log::warning('Failed to write NdtcApiCallLog', ['error' => $e->getMessage()]);
+        }
+    }
+
+    private function resolveOrderId(string $endpoint): ?string
+    {
+        if (!preg_match('#/orders/([a-f0-9]{24})#i', $endpoint, $matches)) {
+            return null;
+        }
+
+        return $matches[1];
     }
 }

@@ -42,12 +42,17 @@ return new class extends Migration
             $table->unsignedTinyInteger('rejection_count')->default(0)->index();
             $table->boolean('finalized')->default(false)->index();
             $table->boolean('ready_to_finalize')->default(false);
+            $table->boolean('is_aging')->default(false);
+            $table->timestamp('aging_since')->nullable();
 
             // ── TIMESTAMPS FOR SORTING ────────────────────
             $table->timestamp('finalized_at')->nullable()->index();
             $table->timestamp('approved_at')->nullable()->index();
             $table->timestamp('rejected_at')->nullable();
             $table->timestamp('cancelled_at')->nullable();
+
+            $table->timestamp('ready_for_documents_at')->nullable();
+            $table->timestamp('ready_to_finalize_at')->nullable();
 
             // ── JSON PAYLOADS ─────────────────────────────
             $table->json('order_payload')->nullable();

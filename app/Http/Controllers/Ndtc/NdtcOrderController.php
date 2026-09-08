@@ -67,7 +67,10 @@ class NdtcOrderController extends Controller
             $query->where('finalized', true);
         }
         if ($request->boolean('needs_action')) {
-            $query->whereIn('status', ['REJECTED', 'AGING', 'READY_FOR_DOCUMENTS', 'READY_TO_FINALIZE']);
+            $query->where(function ($q) {
+                $q->whereIn('status', ['REJECTED', 'READY_FOR_DOCUMENTS', 'READY_TO_FINALIZE'])
+                ->orWhere('is_aging', true);
+            });
         }
 
         // New filters (map to your actual columns/relations)
@@ -110,7 +113,8 @@ class NdtcOrderController extends Controller
             ];
 
             $orderedList = implode(',', array_map(fn ($s) => "'{$s}'", $statusOrder));
-            $query->orderByRaw("FIELD(status, {$orderedList})")
+            $query->orderByDesc('is_aging') // aging orders always float to the top of their status group
+                ->orderByRaw("FIELD(status, {$orderedList})")
                 ->latest('created_at');
         } elseif (in_array($sort, $allowed)) {
             $query->orderBy($sort, $dir === 'asc' ? 'asc' : 'desc');
@@ -127,7 +131,12 @@ class NdtcOrderController extends Controller
             'ready_for_docs'     => (clone $statsQuery)->where('status', 'READY_FOR_DOCUMENTS')->count(),
             'ready_to_finalize'  => (clone $statsQuery)->where('status', 'READY_TO_FINALIZE')->count(),
             'processing'         => (clone $statsQuery)->whereIn('status', ['PROCESSING', 'MANUAL_REVIEW'])->count(),
-            'on_hold_aging'      => (clone $statsQuery)->whereIn('status', ['ON_HOLD', 'AGING'])->count(),
+            'on_hold_aging'      => (clone $statsQuery)
+                                        ->where(function ($q) {
+                                            $q->where('status', NdtcOrder::STATUS_ON_HOLD)
+                                            ->orWhere('is_aging', true);
+                                        })
+                                        ->count(),
             'completed'          => (clone $statsQuery)->whereIn('status', ['APPROVED', 'COMPLETED'])->count(),
             'rejected'           => (clone $statsQuery)->where('status', 'REJECTED')->count(),
             'canceled'           => (clone $statsQuery)->where('status', 'CANCELLED')->count(),
@@ -336,10 +345,10 @@ class NdtcOrderController extends Controller
             'document_content' => ['required', 'string'],
         ]);
 
-        if ($order->status !== NdtcOrder::STATUS_READY_FOR_DOCUMENTS
-            && $order->status !== NdtcOrder::STATUS_READY_TO_FINALIZE) {
-            return back()->with('error', 'Documents can only be uploaded when order is ready for documents.');
-        }
+        // if ($order->status !== NdtcOrder::STATUS_READY_FOR_DOCUMENTS
+        //     && $order->status !== NdtcOrder::STATUS_READY_TO_FINALIZE) {
+        //     return back()->with('error', 'Documents can only be uploaded when order is ready for documents.');
+        // }
 
         // Store file temporarily
         $file        = $request->file('document');

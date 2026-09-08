@@ -791,7 +791,7 @@
                             </div>
                             <div class="info-row">
                                 <span class="info-key">Rejected at</span>
-                                <span class="info-val">{{ $order->rejected_at?->format('M d, Y H:i') }} UTC</span>
+                                <span class="info-val">{{ $order->rejected_at?->format('M d, Y H:i') }}</span>
                             </div>
                             <div class="info-row">
                                 <span class="info-key">Rejection count</span>
@@ -830,7 +830,7 @@
                             </div>
                             <div class="info-row">
                                 <span class="info-key">Approved at</span>
-                                <span class="info-val">{{ $order->approved_at?->format('M d, Y H:i') }} UTC</span>
+                                <span class="info-val">{{ $order->approved_at?->format('M d, Y H:i') }}</span>
                             </div>
                             @if($order->new_title_number)
                                 <div class="info-row">
@@ -948,7 +948,7 @@
                     @if($doc->ndtc_document_id)
                         <a href="{{ route('ndtc.orders.documents.view', [$order, $doc]) }}"
                            class="btn btn-sm btn-outline-secondary btn-xs" target="_blank">
-                            <i class="fas fa-eye mr-1"></i>View
+                            <i class="fas fa-eye mr-1"></i>View 2
                         </a>
                     @endif
                     @if($doc->canBeReplaced() && !$order->isTerminal())
@@ -1064,7 +1064,7 @@
                 <div class="tl-body">
                     <div class="tl-event">{{ $log->event }}</div>
                     <div class="tl-time">
-                        {{ $log->received_at->format('M d, Y · H:i:s') }} UTC
+                        {{ $log->received_at->format('M d, Y · H:i:s') }}
                         @if($log->ndtc_status)
                             &nbsp;·&nbsp; Status: {{ $log->ndtc_status }}
                         @endif
@@ -1092,7 +1092,7 @@
                 <div class="tl-body">
                     <div class="tl-event">Order Created</div>
                     <div class="tl-time">
-                        {{ $order->created_at->format('M d, Y · H:i:s') }} UTC
+                        {{ $order->created_at->format('M d, Y · H:i:s') }}
                         &nbsp;·&nbsp; Ref: {{ $order->correlation_id }}
                     </div>
                     <div class="tl-detail">
@@ -1203,7 +1203,7 @@
                         </div>
                         <h6 class="text-danger">Submission #{{ $history->submission_number }} — Rejected</h6>
                         <span class="ml-auto text-muted" style="font-size:.72rem">
-                            {{ $history->rejected_at->format('M d, Y · H:i') }} UTC
+                            {{ $history->rejected_at->format('M d, Y · H:i') }}
                         </span>
                     </div>
                     <div class="card-body p-3">
@@ -1219,7 +1219,7 @@
                                 </div>
                                 <div class="info-row">
                                     <span class="info-key">Rejected at</span>
-                                    <span class="info-val">{{ $history->rejected_at->format('M d, Y H:i') }} UTC</span>
+                                    <span class="info-val">{{ $history->rejected_at->format('M d, Y H:i') }}</span>
                                 </div>
                             </div>
                             <div class="col-md-8">

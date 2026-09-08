@@ -2,21 +2,13 @@ $(document).ready(function () {
 
     $('[data-target="#modal-vehicle-detail"]').css('color', '#495057');
 
-    /**
-     * Get Vehicle Detail Form.Modal when click on year-make-model
-     */
-
-    $('.vehicles-table tbody').on('click', 'tr', function() {
-
+    function loadVehicleDetail(vehicleId) {
         $('#vehicle-detail-div').html(
             '<div class="text-center">Please wait... Data is loading<i class="fa fa-spinner fa-spin fa-3x fa-fw"></i></div>'
         );
 
-        var vehicleId = '/vehicles/' + $(this).attr('id');
-        $.get(vehicleId + '/html', function(response) {
-            //replace ID with "Vehicle ID",keys with "Has Keys"
-
-            //create array which contains keys and values, all the keys will be replaced by their respective values in the response html
+        var url = '/vehicles/' + vehicleId;
+        $.get(url + '/html', function(response) {
             var replaceKeys = {
                 'ID': 'Vehicle ID',
                 'CREATED_AT': 'Date Entered',
@@ -42,7 +34,6 @@ $(document).ready(function () {
             };
             var new_response = response.html;
 
-            //iterate over the replaceKeys array and replace the keys with their respective values in the response html
             $.each(replaceKeys, function(key, value) {
                 new_response = new_response.replace(key, value);
             });
@@ -50,18 +41,15 @@ $(document).ready(function () {
             var requiredFields = ['vin', 'description', 'location'];
             $.each(requiredFields, function(key, value) {
                 new_response = new_response.replace('name="' + value + '"',
-                    'name="' + value +
-                    '" required');
+                    'name="' + value + '" required');
             });
 
-            //Apply pattern to vin field
             new_response = new_response.replace('name="vin"',
                 'name="vin" pattern="[A-Za-z0-9]+" title="Only alphanumeric characters are allowed"'
             );
 
             $('#vehicle-detail-div').html(new_response);
 
-            //We are overriding select2 library
             $('.select2').select2({
                 placeholder: "Select Location",
                 tags: true,
@@ -73,23 +61,30 @@ $(document).ready(function () {
             var startDate;
             $('.daterange').each(function(index) {
                 startDate = $(this).val();
-
                 $(this).daterangepicker({
                     singleDatePicker: true,
                     showDropdowns: true,
                     startDate: startDate,
-                    locale: {
-                        format: "YYYY-MM-DD"
-                    }
+                    locale: { format: "YYYY-MM-DD" }
                 });
             });
-
         });
 
-        //Adding action attr to form
-        $('#vehicle-detail-form').attr('action', vehicleId);
+        $('#vehicle-detail-form').attr('action', url);
+    }
+
+    /**
+     * Get Vehicle Detail Form.Modal when click on year-make-model
+     */
+
+    $('.vehicles-table tbody').on('click', 'tr', function() {
+        loadVehicleDetail($(this).attr('id'));
     });
 
+    $(document).on('click', '[data-target="#modal-vehicle-detail"][data-id]', function() {
+        var vehicleId = $(this).data('id');
+        loadVehicleDetail(vehicleId);
+    });
 
     //It triggers when we click on Upadte button on vehicle detail page
     $('.vehicle-detail-form').on('submit', function(e) {
@@ -104,24 +99,22 @@ $(document).ready(function () {
             type: method,
             data: data,
             success: function(response) {
-
                 if (response.status == 'success') {
-                    Swal.fire(
-                        'Success!',
-                        response.message,
-                        'success'
-                    );
-
-                    $('#modal-vehicle-create').modal('hide');
-                    $('#modal-vehicle-detail').modal('hide');
-                    // window.location.href = '/dashboard';
+                    Swal.fire({
+                        title: 'Success!',
+                        text: response.message,
+                        icon: 'success',
+                        timer: 1200,
+                        showConfirmButton: false
+                    }).then(function () {
+                        window.location.reload();
+                    });
                 } else {
                     Swal.fire(
                         'Error!',
                         'Something went wrong',
                         'error'
                     );
-                    console.log(response.message);
                 }
 
 
@@ -133,7 +126,6 @@ $(document).ready(function () {
                 $.each(errors, function(key, value) {
                     errorString += '<li>' + value + '</li>';
                 });
-
 
                 Swal.fire(
                     'Error!',
@@ -148,5 +140,12 @@ $(document).ready(function () {
     $('#create-ndtc-btn').on('click', function() {
         const vehicleId = $('input[name="id"]').val();
         window.location.href = '/ndtc/orders/create/' + vehicleId;
+    });
+
+    $('#modal-vehicle-detail').on('show.bs.modal', function (e) {
+        var onNdtcCreatePage = window.location.pathname.startsWith('/ndtc/orders/create');
+
+        $('#create-ndtc-btn').toggle(!onNdtcCreatePage);
+         console.log('onNdtcCreatePage:', onNdtcCreatePage);
     });
 });

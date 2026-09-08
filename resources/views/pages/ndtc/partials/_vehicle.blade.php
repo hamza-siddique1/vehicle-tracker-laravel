@@ -1,9 +1,16 @@
 <div class="card">
-            <div class="card-header">
+            <div class="card-header d-flex align-items-center justify-content-between">
                 <h5 class="card-title mb-0">
                     <i class="align-middle mr-2" data-feather="truck"></i>
                     Vehicle Information <span class="required-note">*</span>
                 </h5>
+                <a href="#"
+                data-toggle="modal"
+                data-target="#modal-vehicle-detail"
+                data-id="{{ $vehicle->id }}"
+                class="btn btn-sm btn-outline-success">
+                    <i class="align-middle mr-1" data-feather="edit-2"></i>Edit Vehicle Data
+                </a>
             </div>
             <div class="card-body">
                 <div class="alert alert-info">
@@ -14,20 +21,16 @@
                 </div>
 
                 {{-- VIN (Read-only) --}}
-                <div class="form-group row">
-                    <label class="col-md-2 col-form-label font-weight-bold">
+                <div class="form-group col-md" style="padding-left: 1rem;">
+                    <label class="font-weight-bold">
                         VIN <span class="required-note">*</span>
                     </label>
-                    <div class="col-sm-6">
-                        <input type="text"
-                               class="form-control font-monospace"
-                               name="vin"
-                               value="{{ $vehicle->vin }}"
-                               readonly>
-                    </div>
-                    <div class="col-sm-4 d-flex align-items-center">
-                        <span class="field-badge badge-auto">AUTO (Read-only)</span>
-                    </div>
+                    <input type="text"
+                        class="form-control font-monospace"
+                        name="vin"
+                        value="{{ $vehicle->vin }}"
+                        readonly>
+                    <small class="form-text"><span class="field-badge badge-auto">AUTO (Read-only)</span></small>
                 </div>
 
                 <div class="form-row">
@@ -91,7 +94,7 @@
                         @enderror
                         <small class="form-text"><span class="field-badge badge-manual">VERIFY</span> Select appropriate class</small>
                     </div>
-                </div>
+
 
                 <div class="form-row">
                     {{-- Body Style --}}

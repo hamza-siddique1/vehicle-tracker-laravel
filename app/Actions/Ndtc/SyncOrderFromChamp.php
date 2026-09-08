@@ -20,19 +20,25 @@ class SyncOrderFromChamp
         }
 
         $response = $this->api->getOrder($order->ndtc_order_id);
+        $mappedStatus = $this->mapOrderStatusToAppStatus($response['orderStatus'] ?? $order->ndtc_status);
+        $order->applyStatusIfAdvanced($mappedStatus);
 
         $order->update([
-            'status'      => $response['orderStatus'] ?? $order->status,
-            'ndtc_status' => $response['orderStatus'] ?? $order->ndtc_status,
+            'ndtc_status'      => $response['orderStatus'] ?? $order->ndtc_status,
             'champ_snapshot' => $response,
             'last_synced_at'  => now(),
         ]);
+
+        $order->save();
 
         $remoteDocs = collect($response['evidenceDetail']['attachedDocuments'] ?? []);
         $remoteIds  = $remoteDocs->pluck('id')->filter()->all();
 
         foreach ($remoteDocs as $remoteDoc) {
-            $localDoc = $order->documents()->where('ndtc_document_id', $remoteDoc['id'])->first();
+            $localDoc = $order->documents()
+                ->where('ndtc_document_id', $remoteDoc['id'])
+                ->where('is_system_generated', false)
+                ->first();
 
             if ($localDoc) {
                 $localDoc->update([
@@ -50,7 +56,7 @@ class SyncOrderFromChamp
                     'file_mime_type'      => $remoteDoc['fileType'] ?? null,
                     'file_size_bytes'     => $remoteDoc['byteSize'] ?? null,
                     'status'              => NdtcOrderDocument::STATUS_UPLOADED,
-                    'is_system_generated' => false,
+                    'is_system_generated' => true,
                     'uploaded_at'         => now(),
                 ]);
             }
@@ -67,5 +73,24 @@ class SyncOrderFromChamp
                     'upload_error'     => 'No longer attached on NDTC — link was stale and has been cleared.',
                 ]);
             });
+    }
+
+    private function mapOrderStatusToAppStatus(string $ndtcOrderStatus): string
+    {
+        return match ($ndtcOrderStatus) {
+            'DRAFT'                          => NdtcOrder::STATUS_DRAFT,
+            'PROCESSING'                      => NdtcOrder::STATUS_PROCESSING,
+            'MANUAL_REVIEW_REQUIRED'         => NdtcOrder::STATUS_MANUAL_REVIEW,
+            'AUTO_APPROVED',
+            'AUTO_APPROVED_WITH_CORRECTIONS',
+            'MANUALLY_APPROVED',
+            'COMPLETED'                      => NdtcOrder::STATUS_APPROVED,
+            'AUTO_REJECTED',
+            'MANUALLY_REJECTED'              => NdtcOrder::STATUS_REJECTED,
+            'CANCELLED'                      => NdtcOrder::STATUS_CANCELLED,
+            'TITLE_TERMINATED'               => NdtcOrder::STATUS_TITLE_TERMINATED,
+            'TITLE_REACTIVATED'              => NdtcOrder::STATUS_APPROVED,
+            default                          => $ndtcOrderStatus,
+        };
     }
 }

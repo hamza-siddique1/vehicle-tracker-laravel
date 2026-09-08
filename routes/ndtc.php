@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\Ndtc\NdtcOrderController;
 use App\Http\Controllers\Ndtc\NdtcWebhookController;
-use App\Models\NdtcOrder;
 use Illuminate\Support\Facades\Route;
 
 // ── Authenticated NDTC routes ─────────────────────────────────
@@ -46,16 +45,6 @@ Route::prefix('ndtc')->name('ndtc.')->middleware(['auth'])->group(function () {
 
      Route::post('/orders/{order}/sync', [NdtcOrderController::class, 'syncFromChamp'])
           ->name('orders.sync');
-
-    // Test panel — dev only
-    if (app()->environment('local')) {
-        Route::get('test/webhook/{order}',
-                   [\App\Http\Controllers\Ndtc\NdtcTestController::class, 'index'])
-             ->name('test.webhook');
-        Route::post('test/webhook/{order}/fire',
-                    [\App\Http\Controllers\Ndtc\NdtcTestController::class, 'fire'])
-             ->name('test.webhook.fire');
-    }
 });
 
 // ── Public webhook — no auth, no CSRF ────────────────────────
@@ -67,3 +56,12 @@ Route::post('webhooks/ndtc', [NdtcWebhookController::class, 'handle'])
 Route::delete('orders/{order}/archive', [NdtcOrderController::class, 'archive'])
     ->name('ndtc.orders.archive');
 //
+
+    // Test panel — dev only
+    if (app()->environment('local')) {
+        Route::get('/dev/ndtc/webhook-simulator', [\App\Http\Controllers\Dev\NdtcWebhookSimulatorController::class, 'show'])
+        ->name('dev.ndtc.webhook-simulator');
+
+     Route::post('/dev/ndtc/webhook-simulator', [\App\Http\Controllers\Dev\NdtcWebhookSimulatorController::class, 'send'])
+          ->name('dev.ndtc.webhook-simulator.send');
+     }

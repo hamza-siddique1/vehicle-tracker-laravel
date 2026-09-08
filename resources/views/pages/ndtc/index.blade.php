@@ -206,7 +206,7 @@
                                     <td style="white-space:nowrap">
                                         <div>{{ $order->created_at->format('M d, Y') }}</div>
                                         <div class="text-muted" style="font-size:.7rem">
-                                            {{ $order->created_at->format('H:i') }} UTC
+                                            {{ $order->created_at->format('H:i') }}
                                         </div>
                                     </td>
 
