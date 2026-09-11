@@ -364,6 +364,7 @@ class NdtcOrderController extends Controller
             'file_mime_type'   => $mimeType,
             'file_size_bytes'  => $file->getSize(),
             'status'           => NdtcOrderDocument::STATUS_PENDING,
+            'is_system_generated' => false,
         ]);
 
         // Dispatch upload job
@@ -408,6 +409,7 @@ class NdtcOrderController extends Controller
             'file_mime_type'   => $file->getMimeType(),
             'file_size_bytes'  => $file->getSize(),
             'status'           => NdtcOrderDocument::STATUS_PENDING,
+            'is_system_generated' => false,
         ]);
 
         UploadNdtcDocuments::dispatch($order, $newDocument, storage_path('app/' . $tempPath));

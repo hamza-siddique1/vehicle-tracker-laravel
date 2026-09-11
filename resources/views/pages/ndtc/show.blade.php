@@ -525,6 +525,17 @@
             <i class="fas fa-archive mr-1"></i>Archive
         </a>
     </li>
+
+    <li class="nav-item">
+        <a class="nav-link" href="#tab-debug" data-toggle="tab">
+            <i class="fas fa-bug mr-1"></i>Debug
+            @if($order->apiCallLogs->count() > 0)
+                <span class="badge badge-secondary ml-1" style="font-size:.6rem">
+                    {{ $order->apiCallLogs->count() }}
+                </span>
+            @endif
+        </a>
+    </li>
     @if($isRejected)
         <li class="nav-item">
             <a class="nav-link" href="#tab-rejection" data-toggle="tab">
@@ -948,7 +959,7 @@
                     @if($doc->ndtc_document_id)
                         <a href="{{ route('ndtc.orders.documents.view', [$order, $doc]) }}"
                            class="btn btn-sm btn-outline-secondary btn-xs" target="_blank">
-                            <i class="fas fa-eye mr-1"></i>View 2
+                            <i class="fas fa-eye mr-1"></i>View
                         </a>
                     @endif
                     @if($doc->canBeReplaced() && !$order->isTerminal())
@@ -1260,6 +1271,52 @@
             </div>
         </div>
     </div>
+
+    <div class="tab-pane fade" id="tab-debug">
+    <p class="text-muted mb-3 small">
+        <i class="fas fa-info-circle mr-1"></i>
+        Every NDTC API call made for this order, with full request/response detail.
+    </p>
+
+    @forelse($order->apiCallLogs as $log)
+        <div class="section-card mb-2">
+            <div class="card-header d-flex align-items-center justify-content-between" style="cursor:pointer"
+                 data-toggle="collapse" data-target="#apiLog{{ $log->id }}">
+                <div class="d-flex align-items-center" style="gap:.5rem">
+                    <span class="badge {{ $log->isSuccessful() ? 'badge-success' : 'badge-danger' }}">
+                        {{ $log->method }}
+                    </span>
+                    <code style="font-size:.75rem">{{ $log->endpoint }}</code>
+                </div>
+                <div class="d-flex align-items-center" style="gap:.75rem">
+                    <span class="badge {{ $log->isSuccessful() ? 'badge-success' : 'badge-danger' }}" style="font-size:.65rem">
+                        {{ $log->response_status ?? 'No response' }}
+                    </span>
+                    <small class="text-muted">{{ $log->duration_ms }}ms</small>
+                    <small class="text-muted">{{ $log->created_at->format('M d, H:i:s') }}</small>
+                </div>
+            </div>
+            <div class="collapse" id="apiLog{{ $log->id }}">
+                <div class="card-body">
+                    @if($log->error_message)
+                        <div class="alert alert-danger small mb-2">{{ $log->error_message }}</div>
+                    @endif
+
+                    <div class="section-divider">Request Payload</div>
+                    <pre style="background:#1e1e2e; color:#d4d4d4; padding:.75rem; border-radius:6px; max-height:300px; overflow:auto; font-size:.75rem;">{{ $log->request_payload ? json_encode($log->request_payload, JSON_PRETTY_PRINT) : '(empty)' }}</pre>
+
+                    <div class="section-divider">Response Body</div>
+                    <pre style="background:#1e1e2e; color:#d4d4d4; padding:.75rem; border-radius:6px; max-height:300px; overflow:auto; font-size:.75rem;">{{ $log->response_body ? (json_decode($log->response_body) ? json_encode(json_decode($log->response_body), JSON_PRETTY_PRINT) : $log->response_body) : '(no response)' }}</pre>
+                </div>
+            </div>
+        </div>
+    @empty
+        <div class="text-center text-muted py-4">
+            <i class="fas fa-bug fa-2x mb-2 d-block"></i>
+            No API calls logged for this order yet.
+        </div>
+    @endforelse
+</div>
 
 </div>{{-- /tab-content --}}
 

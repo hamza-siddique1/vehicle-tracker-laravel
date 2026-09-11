@@ -35,9 +35,9 @@ class SyncOrderFromChamp
         $remoteIds  = $remoteDocs->pluck('id')->filter()->all();
 
         foreach ($remoteDocs as $remoteDoc) {
+            //dump($remoteDoc['id']);
             $localDoc = $order->documents()
                 ->where('ndtc_document_id', $remoteDoc['id'])
-                ->where('is_system_generated', false)
                 ->first();
 
             if ($localDoc) {

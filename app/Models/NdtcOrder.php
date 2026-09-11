@@ -111,7 +111,7 @@ class NdtcOrder extends Model
 
     public function apiCallLogs()
     {
-        return $this->hasMany(NdtcApiCallLog::class)->latest();
+        return $this->hasMany(NdtcApiCallLog::class, 'ndtc_order_id', 'ndtc_order_id')->latest();
     }
 
     public function scopeActive($query)

@@ -140,7 +140,6 @@ class NdtcApiService
 
         $logData = [
             'ndtc_order_id'   => $this->resolveOrderId($endpoint),
-            'method'          => $method,
             'endpoint'        => $endpoint,
             'request_payload' => $payload ?: null,
         ];
@@ -191,6 +190,8 @@ class NdtcApiService
 
     private function logCall(array $logData, ?int $status, ?string $body, ?string $errorMessage, float $startedAt): void
     {
+        //if($status == 200) return;
+
         try {
             NdtcApiCallLog::create(array_merge($logData, [
                 'response_status' => $status,

@@ -19,7 +19,7 @@ return new class extends Migration
                   ->onDelete('cascade');
 
             // ── NDTC REFERENCE ────────────────────────────────────
-            $table->string('ndtc_document_id')->nullable()->index();
+            $table->unique('ndtc_document_id')->nullable()->index();
             // Assigned by CHAMP after create document API call
             // Needed for GET, DELETE operations on the document
 
@@ -38,7 +38,7 @@ return new class extends Migration
             $table->string('status', 30)->default('PENDING')->index();
             // PENDING → UPLOADING → UPLOADED → FAILED → REPLACED
 
-            $table->boolean('is_system_generated')->default(false);
+            $table->boolean('is_system_generated')->default(true);
             // CHAMP-generated docs e.g. CLEARINGHOUSE_TITLE_APPLICATION
             // Agent must never be allowed to delete these
 
