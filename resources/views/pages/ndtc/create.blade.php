@@ -112,35 +112,59 @@
     $auctionSource = $vehicle->source ?? '';
 
     // Parse description → year / make / model
-    $descParts  = explode(' ', trim($vehicle->description), 3);
+    $descParts  = preg_split('/\s+/', trim($vehicle->description));
     $parsedYear = $descParts[0] ?? '';
 
     // Determine NCIC Make code from description
     $makeMap = [
-        'ACURA' => 'ACUR', 'AUDI' => 'AUDI', 'BMW' => 'BMW', 'BUICK' => 'BUIC',
-        'CADILLAC' => 'CADI', 'CHEVROLET' => 'CHEV', 'CHRYSLER' => 'CHRY',
-        'DODGE' => 'DODG', 'FORD' => 'FORD', 'GMC' => 'GMC', 'HONDA' => 'HOND',
-        'HYUNDAI' => 'HYUN', 'INFINITI' => 'INFI', 'JEEP' => 'JEEP', 'KIA' => 'KIA',
-        'LEXUS' => 'LEXS', 'LINCOLN' => 'LINC', 'LAND ROVER' => 'LNDR',
-        'MAZDA' => 'MAZD', 'MERCEDES-BENZ' => 'MERZ', 'MINI' => 'MINI',
-        'MITSUBISHI' => 'MITS', 'NISSAN' => 'NISS', 'PONTIAC' => 'PONT',
-        'PORSCHE' => 'PORS', 'RAM' => 'RRAM', 'SUBARU' => 'SUBA',
-        'TOYOTA' => 'TOYT', 'VOLKSWAGEN' => 'VOLK', 'VOLVO' => 'VOLV'
+        'ACURA'         => 'ACUR',
+        'AUDI'          => 'AUDI',
+        'BMW'           => 'BMW',
+        'BUICK'         => 'BUIC',
+        'CADILLAC'      => 'CADI',
+        'CHEVROLET'     => 'CHEV',
+        'CHRYSLER'      => 'CHRY',
+        'DODGE'         => 'DODG',
+        'FORD'          => 'FORD',
+        'GMC'           => 'GMC',
+        'HONDA'         => 'HOND',
+        'HYUNDAI'       => 'HYUN',
+        'INFINITI'      => 'INFI',
+        'JEEP'          => 'JEEP',
+        'KIA'           => 'KIA',
+        'LEXUS'         => 'LEXS',
+        'LINCOLN'       => 'LINC',
+        'LAND ROVER'    => 'LNDR',
+        'MAZDA'         => 'MAZD',
+        'MERCEDES-BENZ' => 'MERZ',
+        'MINI'          => 'MINI',
+        'MITSUBISHI'    => 'MITS',
+        'NISSAN'        => 'NISS',
+        'PONTIAC'       => 'PONT',
+        'PORSCHE'       => 'PORS',
+        'RAM'           => 'RRAM',
+        'SUBARU'        => 'SUBA',
+        'TOYOTA'        => 'TOYT',
+        'VOLKSWAGEN'    => 'VOLK',
+        'VOLVO'         => 'VOLV',
     ];
 
-    $parsedMake = '';
-    $parsedModel = '';
     if (isset($descParts[1])) {
-        $makeKey = strtoupper($descParts[1]);
-        if (isset($makeMap[$makeKey])) {
-            $parsedMake = $makeMap[$makeKey];
-            $parsedModel = $descParts[2] ?? '';
-        } elseif (isset($descParts[2])) {
-            // Check multi-word makes
+        // Try 2-word make first (more specific match wins)
+        if (isset($descParts[2])) {
             $twoWord = strtoupper($descParts[1] . ' ' . $descParts[2]);
             if (isset($makeMap[$twoWord])) {
-                $parsedMake = $makeMap[$twoWord];
-                $parsedModel = $descParts[3] ?? '';
+                $parsedMake  = $makeMap[$twoWord];
+                $parsedModel = implode(' ', array_slice($descParts, 3));
+            }
+        }
+
+        // Fall back to 1-word make if 2-word didn't match
+        if ($parsedMake === '') {
+            $oneWord = strtoupper($descParts[1]);
+            if (isset($makeMap[$oneWord])) {
+                $parsedMake  = $makeMap[$oneWord];
+                $parsedModel = implode(' ', array_slice($descParts, 2));
             }
         }
     }
