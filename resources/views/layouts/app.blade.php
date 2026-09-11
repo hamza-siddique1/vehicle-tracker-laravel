@@ -8,10 +8,10 @@
 
     <title>@yield('title') - {{ env('APP_NAME') }}</title>
 
-    {{-- <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500&display=swap" rel="stylesheet"> --}}
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
     <link class="js-stylesheet" href="{{ asset('assets/css/light.css') }}" rel="stylesheet">
 
-    {{-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css"> --}}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
 
     @if (Request::is('vehicles/upload/*') ||
             Request::is('headers') ||
