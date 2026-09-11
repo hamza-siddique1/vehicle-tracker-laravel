@@ -149,6 +149,9 @@
         'VOLVO'         => 'VOLV',
     ];
 
+    $parsedMake  = '';
+    $parsedModel = '';
+
     if (isset($descParts[1])) {
         // Try 2-word make first (more specific match wins)
         if (isset($descParts[2])) {
