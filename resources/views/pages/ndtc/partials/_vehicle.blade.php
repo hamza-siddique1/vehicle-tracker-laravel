@@ -94,7 +94,7 @@
                         @enderror
                         <small class="form-text"><span class="field-badge badge-manual">VERIFY</span> Select appropriate class</small>
                     </div>
-
+                </div>
 
                 <div class="form-row">
                     {{-- Body Style --}}
