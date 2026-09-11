@@ -372,11 +372,6 @@
                         </button>
                     </form>
                 @endif
-                @if($order->isRejected())
-                    <a href="{{ route('ndtc.orders.edit', $order) }}" class="btn btn-sm btn-warning">
-                        <i class="fas fa-edit mr-1"></i>Edit Order
-                    </a>
-                @endif
                 @if($order->canBeCancelled())
                     <form action="{{ route('ndtc.orders.cancel', $order) }}" method="POST" class="d-inline">
                         @csrf
@@ -957,7 +952,7 @@
                     @if($doc->ndtc_document_id)
                         <a href="{{ route('ndtc.orders.documents.view', [$order, $doc]) }}"
                            class="btn btn-sm btn-outline-secondary btn-xs" target="_blank">
-                            <i class="fas fa-eye mr-1"></i>View
+                            <i class="fas fa-eye mr-1"></i>View hamza
                         </a>
                     @endif
                     @if($doc->canBeReplaced() && !$order->isTerminal())
@@ -1172,16 +1167,8 @@
                             and click <strong>Replace</strong>.
                         </div>
                     </div>
-                    <div class="d-flex align-items-start mb-2" style="gap:.75rem">
-                        <div style="width:22px;height:22px;border-radius:50%;background:#3f80ea;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;flex-shrink:0">3</div>
-                        <div class="small">
-                            If order data was wrong — click
-                            <a href="{{ route('ndtc.orders.edit', $order) }}"><strong>Edit Order</strong></a>
-                            to correct the fields.
-                        </div>
-                    </div>
                     <div class="d-flex align-items-start" style="gap:.75rem">
-                        <div style="width:22px;height:22px;border-radius:50%;background:#3f80ea;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;flex-shrink:0">4</div>
+                        <div style="width:22px;height:22px;border-radius:50%;background:#3f80ea;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;flex-shrink:0">3</div>
                         <div class="small">Click <strong>Resubmit Order</strong> above.</div>
                     </div>
                     <div class="alert alert-info mt-3 mb-0 small">
