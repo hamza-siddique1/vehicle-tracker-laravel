@@ -23,13 +23,17 @@ class SyncOrderFromChamp
         $mappedStatus = $this->mapOrderStatusToAppStatus($response['orderStatus'] ?? $order->ndtc_status);
         $order->applyStatusIfAdvanced($mappedStatus);
 
-        $order->update([
-            'ndtc_status'      => $response['orderStatus'] ?? $order->ndtc_status,
-            'champ_snapshot' => $response,
+        $updates = [
+            'ndtc_status'     => $response['orderStatus'] ?? $order->ndtc_status,
+            'champ_snapshot'  => $response,
             'last_synced_at'  => now(),
-        ]);
+        ];
 
-        $order->save();
+        if ($response['orderStatus'] === 'MANUAL_REVIEW_REQUIRED') {
+            $updates['status'] = 'MANUAL_REVIEW_REQUIRED';
+        }
+
+        $order->update($updates);
 
         $remoteDocs = collect($response['evidenceDetail']['attachedDocuments'] ?? []);
         $remoteIds  = $remoteDocs->pluck('id')->filter()->all();
