@@ -227,12 +227,6 @@
                                            class="btn btn-sm btn-outline-primary btn-xs">
                                             <i class="fas fa-eye"></i> View
                                         </a>
-                                        @if($order->status === 'REJECTED')
-                                            <a href="{{ route('ndtc.orders.edit', $order) }}"
-                                               class="btn btn-sm btn-warning btn-xs ml-1">
-                                                <i class="fas fa-edit"></i> Fix
-                                            </a>
-                                        @endif
                                         @if($order->canBeFinalized())
                                             <form action="{{ route('ndtc.orders.finalize', $order) }}"
                                                   method="POST" class="d-inline ml-1">
