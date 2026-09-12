@@ -22,8 +22,7 @@
             @csrf
             <div class="form-group">
                 <label class="font-weight-bold">Order ID (NDTC ndtc_order_id)</label>
-                <input type="text" name="order_id" class="form-control" style="max-width:400px"
-                       placeholder="e.g. 6a804dceab30c40578d737c9" required>
+                <input type="text" name="order_id" id="orderIdInput" class="form-control" style="max-width:400px" required>
             </div>
 
             <input type="hidden" name="event" id="eventInput">
@@ -38,6 +37,19 @@
                 @endforeach
             </div>
         </form>
+        <script>
+            const orderIdInput = document.getElementById('orderIdInput');
+            const STORAGE_KEY = 'ndtc_simulator_order_id';
+
+            // Restore last used value on page load
+            orderIdInput.value = localStorage.getItem(STORAGE_KEY) || '';
+            console.log('Restored order ID from localStorage:', orderIdInput.value);
+
+            // Save value right before the form submits (page reloads after this)
+            document.getElementById('simulatorForm').addEventListener('submit', function () {
+                localStorage.setItem(STORAGE_KEY, orderIdInput.value);
+            });
+        </script>
     </div>
 </div>
 @endsection

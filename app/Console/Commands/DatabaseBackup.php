@@ -2,10 +2,10 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
+use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Storage;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
 
@@ -37,6 +37,8 @@ class DatabaseBackup extends Command
             'telescope_monitoring',
         ];
 
+        $excludeTables = [];
+
         if ($this->backupDatabase($dbBackupFile, $excludeTables)) {
             $this->info("Database backup created successfully: {$dbBackupFile}");
         }
@@ -62,8 +64,12 @@ class DatabaseBackup extends Command
                 '--user=' . $dbUser,
                 '--password=' . $dbPass,
                 '--host=' . $dbHost,
-                $dbName,
+                '--single-transaction',   // consistent snapshot, doesn't lock InnoDB tables
+                '--quick',                // stream rows instead of buffering, avoids OOM on big tables
+                '--no-tablespaces',
+                '--default-character-set=utf8mb4',
                 '--result-file=' . $backupFile,
+                $dbName,
             ],
             $ignoreTablesCommand
         );
@@ -72,6 +78,15 @@ class DatabaseBackup extends Command
 
         try {
             $process->mustRun();
+
+            // verify the dump actually finished cleanly
+            $tail = shell_exec('tail -c 200 ' . escapeshellarg($backupFile));
+            if (strpos($tail, '-- Dump completed') === false) {
+                $this->error("Backup appears truncated: {$backupFile}");
+                Storage::delete(str_replace(storage_path('app/'), '', $backupFile));
+                return false;
+            }
+
             return true;
         } catch (ProcessFailedException $exception) {
             $this->error('Error creating database backup: ' . $exception->getMessage());

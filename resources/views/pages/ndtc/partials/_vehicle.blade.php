@@ -40,19 +40,18 @@
                         <input type="number"
                                class="form-control"
                                name="year"
-                               value="{{ $parsedYear }}"
-                               readonly>
-                        <small class="form-text"><span class="field-badge badge-auto">Read-only</span></small>
+                               value="{{ $parsedYear }}">
+                               <small class="form-text"><span class="field-badge badge-manual">VERIFY</span> From vehicle data</small>
                     </div>
 
                     {{-- Make (Read-only) --}}
                     <div class="form-group col-md-3">
                         <label>Make (NCIC) <span class="required-note">*</span></label>
-                        <select class="form-control" name="make" disabled>
+                        <select class="form-control" name="make">
                             <option value="{{ $parsedMake }}" selected>{{ $parsedMake }}</option>
                         </select>
                         <input type="hidden" name="make" value="{{ $parsedMake }}">
-                        <small class="form-text"><span class="field-badge badge-auto">Read-only</span></small>
+                        <small class="form-text"><span class="field-badge badge-manual">VERIFY</span> From vehicle data</small>
                     </div>
 
                     {{-- Model (Read-only) --}}
@@ -61,9 +60,8 @@
                         <input type="text"
                                class="form-control"
                                name="model"
-                               value="{{ $parsedModel }}"
-                               readonly>
-                        <small class="form-text"><span class="field-badge badge-auto">Read-only</span></small>
+                               value="{{ $parsedModel }}">
+                        <small class="form-text"><span class="field-badge badge-manual">VERIFY</span> From vehicle data</small>
                     </div>
 
                     {{-- Vehicle Class --}}

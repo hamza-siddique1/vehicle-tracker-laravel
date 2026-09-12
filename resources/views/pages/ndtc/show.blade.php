@@ -356,19 +356,11 @@
         {{-- Action buttons --}}
         <div class="d-flex flex-column align-items-end" style="gap:.5rem">
             <div class="d-flex" style="gap:.4rem">
-                @if($order->canBeResubmitted())
-                    <form action="{{ route('ndtc.orders.update', $order) }}" method="POST" class="d-inline">
-                        @csrf @method('PUT')
-                        <button type="submit" class="btn btn-sm btn-danger">
-                            <i class="fas fa-paper-plane mr-1"></i>Resubmit
-                        </button>
-                    </form>
-                @endif
-                @if($order->canBeFinalized())
+                @if($order->canBeFinalized() || $order->canBeResubmitted())
                     <form action="{{ route('ndtc.orders.finalize', $order) }}" method="POST" class="d-inline">
                         @csrf
-                        <button type="submit" class="btn btn-sm btn-success">
-                            <i class="fas fa-check mr-1"></i>Finalize
+                        <button type="submit" class="btn btn-sm {{ $order->canBeResubmitted() ? 'btn-warning' : 'btn-success' }}">
+                            <i class="fas fa-check mr-1"></i>{{ $order->canBeResubmitted() ? 'Resubmit' : 'Finalize' }}
                         </button>
                     </form>
                 @endif
@@ -393,50 +385,7 @@
 </div>
 
 {{-- ══ PIPELINE ════════════════════════════════════════════════ --}}
-<div class="pipeline-wrap">
-    <div class="pipeline">
-        @php
-            $steps = [
-                1 => 'Created',
-                2 => 'Ready for<br>Documents',
-                3 => 'Docs<br>Uploaded',
-                4 => 'Finalized',
-                5 => 'Processing',
-                6 => $isCancelled ? 'Cancelled' : 'Rejected',
-                7 => 'Approved',
-            ];
-        @endphp
-        @foreach($steps as $step => $label)
-            @php
-                if ($step === 6) {
-                    if ($isRejected)       $cls = 'err';
-                    elseif ($isCancelled)  $cls = 'err';
-                    elseif ($isApproved)   $cls = 'done';
-                    elseif ($rank >= 6)    $cls = 'done';
-                    else                   $cls = 'wait';
-                } elseif ($step === 7) {
-                    $cls = $isApproved ? 'done' : 'wait';
-                } elseif ($step === 4) {
-                    $cls = $order->finalized ? 'done' : ($rank === 4 ? 'active' : 'wait');
-                } else {
-                    if ($rank > $step)      $cls = 'done';
-                    elseif ($rank === $step) $cls = 'active';
-                    else                    $cls = 'wait';
-                }
-            @endphp
-            <div class="pipe-step {{ $cls }}">
-                <div class="pipe-dot">
-                    @if($cls === 'done')         <i class="fas fa-check"></i>
-                    @elseif($cls === 'err')       <i class="fas fa-times"></i>
-                    @elseif($cls === 'active')    <i class="fas fa-circle" style="font-size:.4rem"></i>
-                    @else                         –
-                    @endif
-                </div>
-                <div class="pipe-label">{!! $label !!}</div>
-            </div>
-        @endforeach
-    </div>
-</div>
+@include('pages.ndtc.partials._pipeline')
 
 {{-- ══ STAT CARDS ══════════════════════════════════════════════ --}}
 <div class="row mb-3">
@@ -522,11 +471,6 @@
     <li class="nav-item">
         <a class="nav-link" href="#tab-debug" data-toggle="tab">
             <i class="fas fa-bug mr-1"></i>Debug
-            @if($order->apiCallLogs->count() > 0)
-                <span class="badge badge-secondary ml-1" style="font-size:.6rem">
-                    {{ $order->apiCallLogs->count() }}
-                </span>
-            @endif
         </a>
     </li>
     @if($isRejected)
@@ -895,7 +839,15 @@
                     @endif
                 </div>
                 <div class="doc-actions">
-                    @if($doc->canBeReplaced())
+                    @if($doc->status === 'FAILED' && is_null($doc->ndtc_document_id))
+                        <button class="btn btn-sm btn-outline-danger btn-xs"
+                                data-toggle="modal"
+                                data-target="#deleteDocModal"
+                                data-doc-id="{{ $doc->id }}"
+                                data-doc-name="{{ $doc->file_display_name ?? $doc->document_content }}">
+                            <i class="fas fa-trash mr-1"></i>Delete
+                        </button>
+                    @elseif($doc->canBeReplaced())
                         <button class="btn btn-sm btn-danger btn-xs"
                                 data-toggle="modal"
                                 data-target="#replaceDocModal"
@@ -1260,10 +1212,10 @@
     <div class="tab-pane fade" id="tab-debug">
     <p class="text-muted mb-3 small">
         <i class="fas fa-info-circle mr-1"></i>
-        Every NDTC API call made for this order, with full request/response detail.
+        Recent NDTC API call made for this order, with full request/response detail.
     </p>
 
-    @forelse($order->apiCallLogs as $log)
+    @forelse($order->apiCallLogs()->limit(10)->get() as $log)
         <div class="section-card mb-2">
             <div class="card-header d-flex align-items-center justify-content-between" style="cursor:pointer"
                  data-toggle="collapse" data-target="#apiLog{{ $log->id }}">

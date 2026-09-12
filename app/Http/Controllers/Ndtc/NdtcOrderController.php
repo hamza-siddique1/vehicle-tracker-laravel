@@ -423,10 +423,6 @@ class NdtcOrderController extends Controller
             abort(404);
         }
 
-        if ($document->is_system_generated) {
-            return back()->with('error', 'System generated documents cannot be deleted.');
-        }
-
         // Delete from NDTC first, if it was ever actually uploaded there
         if ($document->ndtc_document_id) {
             try {

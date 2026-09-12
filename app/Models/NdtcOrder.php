@@ -154,7 +154,7 @@ class NdtcOrder extends Model
 
     public function canBeFinalized(): bool
     {
-        return $this->ready_to_finalize && !$this->finalized;
+        return !$this->finalized;
     }
 
     public function canBeCancelled(): bool

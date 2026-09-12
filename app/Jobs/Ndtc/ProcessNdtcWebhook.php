@@ -81,7 +81,7 @@ class ProcessNdtcWebhook implements ShouldQueue
         $order->update([
             'status'    => NdtcOrder::STATUS_PROCESSING,
             'ndtc_status'      => $this->payload['status'],
-            'finalized' => true,
+            'finalized' => 1,
         ]);
     }
 
@@ -175,6 +175,12 @@ class ProcessNdtcWebhook implements ShouldQueue
 
         // REJECTED can come from any status
         if ($newStatus === 'REJECTED') return true;
+
+        // Allow resubmission: a REJECTED order can go back to PROCESSING
+        // after corrections, restarting the lifecycle
+        if ($order->status === 'REJECTED' && $newStatus === 'PROCESSING') {
+            return true;
+        }
 
         $current = $rank[$order->status] ?? 0;
         $next    = $rank[$newStatus]     ?? 0;
