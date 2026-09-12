@@ -36,6 +36,12 @@
         <div class="main">
             @include('includes.header')
 
+                @if(session('success'))
+                    <x-alert type="success">{{ session('success') }}</x-alert>
+                @elseif(session('error'))
+                    <x-alert type="danger">{{ session('error') }}</x-alert>
+                @endif
+
             <main class="content">
                 <div class="container-fluid p-0">
 

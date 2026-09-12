@@ -51,9 +51,10 @@ class NdtcApiService
         };
     }
 
-    public function updateOrder(string $ndtcOrderId, array $payload, ?NdtcOrder $order = null): array
+    public function updateOrder(string $ndtcOrderId, array $payload, string $transactionType): array
     {
-        return $this->request('PUT', "/api/v3/clearinghouse/orders/{$ndtcOrderId}", $payload, $order);
+        $endpoint = $this->getOrderEndpoint($transactionType) . "/{$ndtcOrderId}";
+        return $this->request('PUT', $endpoint, $payload);
     }
 
     public function finalizeOrder(string $ndtcOrderId, ?NdtcOrder $order = null): array
@@ -151,7 +152,6 @@ class NdtcApiService
                 ->$method($url, $payload ?: null);
 
             if ($response->status() === 401) {
-                Log::info('NDTC token expired — refreshing and retrying');
                 $response = Http::withToken($this->auth->refreshToken())
                     ->acceptJson()
                     ->timeout(60)
@@ -206,7 +206,7 @@ class NdtcApiService
 
     private function resolveOrderId(string $endpoint): ?string
     {
-        if (!preg_match('#/orders/([a-f0-9]{24})#i', $endpoint, $matches)) {
+        if (!preg_match('#/orders/(?:[a-z-]+/)?([a-f0-9]{24})(?:[/?]|$)#i', $endpoint, $matches)) {
             return null;
         }
 

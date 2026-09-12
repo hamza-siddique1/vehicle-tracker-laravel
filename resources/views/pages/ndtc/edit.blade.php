@@ -1,8 +1,8 @@
-{{-- resources/views/ndtc/orders/create.blade.php --}}
+{{-- resources/views/ndtc/orders/edit.blade.php --}}
 
 @extends('layouts.app')
 
-@section('title', 'Create NDTC Order - Transfer No Lien')
+@section('title', 'Edit NDTC Order - ' . (data_get($order->order_payload ?? [], 'transactionType') ?? old('ndtc_transaction_type', 'TNL')))
 
 @section('styles')
     <style>
@@ -100,82 +100,82 @@
 @endsection
 
 @php
-    $role = Auth()->user()->role;
+    $odometer      = '';
+    $saleDate      = '';
+    $titleState    = '';
+    $titleType     = '';
+    $auctionSource = '';
+    $parsedYear    = '';
+    $parsedMake    = '';
+    $parsedModel   = '';
 
-    // ── Pull vehicle metas ────────────────────────────────────
-    $metas = $vehicle->metas->pluck('meta_value', 'meta_key');
+    // Field name → dot path inside order_payload
+    $payloadMap = [
+        'title_number'          => 'evidence.existingTitle.titleNumber',
+        'issuing_state'         => 'evidence.existingTitle.issuingStateCode',
+        'title_type'            => 'evidence.existingTitle.titleType',
+        'title_brands'          => 'evidence.existingTitle.titleBrands',
+        'control_number'        => 'evidence.existingTitle.controlNumber',
 
-    $odometer      = $metas->get('odometer', '');
-    $saleDate      = $metas->get('sale_date', '');
-    $titleState    = $metas->get('sale_title_state', '');
-    $titleType     = $metas->get('sale_title_type', 'PAPER');
-    $auctionSource = $vehicle->source ?? '';
+        'weight'                => 'evidence.vehicle.weight.weight',
+        'fuel_type'             => 'evidence.vehicle.fuelType',
+        'body_style'            => 'evidence.vehicle.bodyStyle',
+        'vehicle_class'         => 'evidence.vehicle.vehicleClass',
+        'year'                  => 'evidence.vehicle.year',
+        'make'                  => 'evidence.vehicle.make',
+        'model'                 => 'evidence.vehicle.model',
 
-    // Parse description → year / make / model
-    $descParts  = preg_split('/\s+/', trim($vehicle->description));
-    $parsedYear = $descParts[0] ?? '';
+        'odometer_reading'      => 'evidence.vehicle.odometer.reading.reading',
+        'odometer_unit'         => 'evidence.vehicle.odometer.reading.unit',
+        'odometer_condition'    => 'evidence.vehicle.odometer.condition',
+        'odometer_date'         => 'evidence.vehicle.odometer.reading.date',
 
-    // Determine NCIC Make code from description
-    $makeMap = [
-        'ACURA'         => 'ACUR',
-        'AUDI'          => 'AUDI',
-        'BMW'           => 'BMW',
-        'BUICK'         => 'BUIC',
-        'CADILLAC'      => 'CADI',
-        'CHEVROLET'     => 'CHEV',
-        'CHRYSLER'      => 'CHRY',
-        'DODGE'         => 'DODG',
-        'FORD'          => 'FORD',
-        'GMC'           => 'GMC',
-        'HONDA'         => 'HOND',
-        'HYUNDAI'       => 'HYUN',
-        'INFINITI'      => 'INFI',
-        'JEEP'          => 'JEEP',
-        'KIA'           => 'KIA',
-        'LEXUS'         => 'LEXS',
-        'LINCOLN'       => 'LINC',
-        'LAND ROVER'    => 'LNDR',
-        'MAZDA'         => 'MAZD',
-        'MERCEDES-BENZ' => 'MERZ',
-        'MINI'          => 'MINI',
-        'MITSUBISHI'    => 'MITS',
-        'NISSAN'        => 'NISS',
-        'PONTIAC'       => 'PONT',
-        'PORSCHE'       => 'PORS',
-        'RAM'           => 'RRAM',
-        'SUBARU'        => 'SUBA',
-        'TOYOTA'        => 'TOYT',
-        'VOLKSWAGEN'    => 'VOLK',
-        'VOLVO'         => 'VOLV',
+        'disposing_name'        => 'evidence.disposingEntities.0.name',
+        'disposing_address1'    => 'evidence.disposingEntities.0.physicalAddress.addressLine1',
+        'disposing_address2'    => 'evidence.disposingEntities.0.physicalAddress.addressLine2',
+        'disposing_city'        => 'evidence.disposingEntities.0.physicalAddress.city',
+        'disposing_state'       => 'evidence.disposingEntities.0.physicalAddress.stateCode',
+        'disposing_zip'         => 'evidence.disposingEntities.0.physicalAddress.zipCode',
+        'disposing_county'      => 'evidence.disposingEntities.0.physicalAddress.county',
+        'disposing_phone'       => 'evidence.disposingEntities.0.phone.number',
+        'disposing_phone_type'  => 'evidence.disposingEntities.0.phone.usageType',
+
+        'transfer_date'         => 'evidence.transferDate',
+        'requested_title_type'  => 'requestedTitle.titleType',
+        'ndtc_transaction_type' => 'transactionType',
+
+        'acquiring_entity_name' => 'acquiringEntity.name',
+        'acquiring_address1'    => 'acquiringEntity.physicalAddress.addressLine1',
+        'acquiring_city'        => 'acquiringEntity.physicalAddress.city',
+        'acquiring_state'       => 'acquiringEntity.physicalAddress.stateCode',
+        'acquiring_zip'         => 'acquiringEntity.physicalAddress.zipCode',
+
+        'title_work_representative_first' => 'titleWorkEntity.representative.firstName',
+        'title_work_representative_last'  => 'titleWorkEntity.representative.lastName',
+        'title_work_representative_email' => 'titleWorkEntity.representative.email',
+        'title_work_representative_phone' => 'titleWorkEntity.representative.phone.number',
     ];
 
-    $parsedMake  = '';
-    $parsedModel = '';
-
-    if (isset($descParts[1])) {
-        // Try 2-word make first (more specific match wins)
-        if (isset($descParts[2])) {
-            $twoWord = strtoupper($descParts[1] . ' ' . $descParts[2]);
-            if (isset($makeMap[$twoWord])) {
-                $parsedMake  = $makeMap[$twoWord];
-                $parsedModel = implode(' ', array_slice($descParts, 3));
+    // Single source of truth for every field's value — payload first, then old(), then fallback
+    $val = function (string $field, $dbValue = null) use ($payload, $payloadMap) {
+        if (old($field) !== null) {
+            return old($field);
+        }
+        if (isset($payloadMap[$field])) {
+            $fromPayload = data_get($payload, $payloadMap[$field]);
+            if ($fromPayload !== null) {
+                if (str_contains($field, '_date') && is_string($fromPayload)) {
+                    return substr($fromPayload, 0, 10); // trim ISO datetime to Y-m-d
+                }
+                return $fromPayload;
             }
         }
-
-        // Fall back to 1-word make if 2-word didn't match
-        if ($parsedMake === '') {
-            $oneWord = strtoupper($descParts[1]);
-            if (isset($makeMap[$oneWord])) {
-                $parsedMake  = $makeMap[$oneWord];
-                $parsedModel = implode(' ', array_slice($descParts, 2));
-            }
-        }
-       }
-    $val = fn($field, $dbValue = null) => old($field, $dbValue ?? '');
-    @endphp
+        return $dbValue ?? '';
+    };
+@endphp
 
 @section('content')
-    <h1 class="h3 mb-3" id="pageTitle">Create NDTC Order - Transfer No Lien (TNL)</h1>
+    <h1 class="h3 mb-3" id="pageTitle">Edit NDTC Order - Transfer No Lien (TNL)</h1>
 
     {{-- Legend --}}
     <div class="d-flex align-items-center gap-2 mb-3" style="gap:12px; flex-wrap: wrap;">
@@ -232,10 +232,11 @@
         </div>
     </div>
 
-    <form action="{{ route('ndtc.orders.store', $vehicle) }}"
+    <form action="{{ route('ndtc.orders.update', $order) }}"
           method="POST"
           id="ndtcOrderForm">
         @csrf
+        @method('PUT')
 
         {{-- Hidden fields --}}
         <input type="hidden" name="vehicle_id"          value="{{ $vehicle->id }}">
@@ -294,21 +295,12 @@
         {{-- ═══════════════════════════════════════════════════════════════════════ --}}
         <div class="sticky-footer-actions">
             <div class="d-flex justify-content-between align-items-center">
-                <small class="text-muted">
-                    <i class="align-middle mr-1" data-feather="info"></i>
-                    After creating the order you will be prompted to upload the title front &amp; back scan.
-                </small>
                 <div>
-                    <a href="{{ url()->previous() }}"
-                       class="btn btn-secondary mr-2">
-                        Cancel
-                    </a>
                     <button type="submit"
                             class="btn btn-primary"
-                            id="submit-btn"
-                            @if($role == 'viewer') disabled @endif>
+                            id="submit-btn">
                         <i class="align-middle mr-1" data-feather="send"></i>
-                        Create NDTC Order
+                        Update NDTC Order Details
                     </button>
                 </div>
             </div>
@@ -324,16 +316,6 @@ $(document).ready(function () {
     // ── BRAND CHECKBOX STYLING ────────────────────────────────
     $('.brand-checkbox').on('change', function () {
         $(this).closest('.brand-check').toggleClass('is-checked', this.checked);
-    });
-
-    // ── SUBMIT CONFIRMATION ───────────────────────────────────
-    $('#ndtcOrderForm').on('submit', function (e) {
-        const confirmed = confirm(
-            'Submit this order to NDTC?\n\n' +
-            'Once submitted, the system will wait for a confirmation from CHAMP ' +
-            'before requesting document uploads.'
-        );
-        if (!confirmed) e.preventDefault();
     });
 
     const TXN_LABELS = @json(

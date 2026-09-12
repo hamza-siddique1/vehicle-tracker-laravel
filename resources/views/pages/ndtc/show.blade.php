@@ -371,6 +371,11 @@
                         </button>
                     </form>
                 @endif
+                @if($order->isRejected())
+                    <a href="{{ route('ndtc.orders.edit', $order) }}" class="btn btn-sm btn-warning">
+                        <i class="fas fa-edit mr-1"></i>Edit Order
+                    </a>
+                @endif
                 @if($order->canBeCancelled())
                     <form action="{{ route('ndtc.orders.cancel', $order) }}" method="POST" class="d-inline">
                         @csrf

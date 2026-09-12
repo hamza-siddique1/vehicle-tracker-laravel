@@ -37,11 +37,6 @@
 
 <div class="px-4 py-3">
 
-    @if(session('success'))
-        <x-alert type="success">{{ session('success') }}</x-alert>
-    @elseif(session('account'))
-        <x-alert type="success">{{ session('account') }}</x-alert>
-    @endif
     {{-- ══ PAGE HEADING ══════════════════════════════════════════ --}}
     <div class="d-flex align-items-center justify-content-between mb-3">
         <div>

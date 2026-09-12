@@ -186,9 +186,10 @@ class NdtcOrderController extends Controller
         $correlationId = strtoupper($request->input('vin')) . '-' . now()->format('YmdHis');
         // Build NDTC payload
         $payload              = $this->builder->fromRequest($request, $correlationId);
+
         // Call NDTC API
         try {
-            $response = $this->api->createOrder($payload);
+            $response = $this->api->createOrder($payload, $request->input('transaction_type'));
             // $response = [
             //     'orderId' => Str::random(24),
             // ];
@@ -255,7 +256,7 @@ class NdtcOrderController extends Controller
         $vehicle = $order->vehicle()->with('metas')->first();
         $payload = $order->order_payload ?? [];
 
-        return view('ndtc.orders.edit', compact('order', 'vehicle', 'payload'));
+        return view('pages.ndtc.edit', compact('order', 'vehicle', 'payload'));
     }
 
     // ── UPDATE ────────────────────────────────────────────────────
@@ -267,15 +268,17 @@ class NdtcOrderController extends Controller
                 ->with('error', 'Only rejected orders can be updated.');
         }
 
-        $payload = $this->builder->fromRequest($request);
+        $payload = $this->builder->fromRequest($request, $order->correlation_id);
         $payload['correlationId'] = $order->correlation_id;
 
         try {
-            $this->api->updateOrder($order->ndtc_order_id, $payload);
+            $this->api->updateOrder($order->ndtc_order_id, $payload, $order->transaction_type);
         } catch (\Exception $e) {
-            return back()
-                ->withInput()
-                ->with('error', 'Failed to update order: ' . $e->getMessage());
+            $message = $this->extractApiErrorMessage($e);
+
+            return redirect()
+                ->route('ndtc.orders.show', $order)
+                ->with('error', $message);
         }
 
         $order->update([
@@ -299,8 +302,9 @@ class NdtcOrderController extends Controller
 
         try {
             $this->api->finalizeOrder($order->ndtc_order_id);
-        } catch (\Exception $e) {
-            return back()->with('error', 'Failed to finalize order: ' . $e->getMessage());
+        } catch (\Exception $e) { //hamza
+            $message = $this->extractApiErrorMessage($e);
+            return back()->with('error', 'Failed to finalize order: ' . $message);
         }
 
         $order->update([
@@ -481,5 +485,26 @@ class NdtcOrderController extends Controller
         }
 
         return back()->with('success', 'Order synced with NDTC — status and document list updated.');
+    }
+
+    private function extractApiErrorMessage(\Exception $e): string
+    {
+        $raw = $e->getMessage();
+
+        // The exception message may already be JSON, or it may be wrapped
+        // (e.g. "Client error: `PUT ...` resulted in a `400 Bad Request`
+        // response: {json}") depending on your HTTP client (Guzzle, etc.)
+        $jsonStart = strpos($raw, '{');
+        $jsonString = $jsonStart !== false ? substr($raw, $jsonStart) : $raw;
+
+        $decoded = json_decode($jsonString, true);
+
+        if (json_last_error() === JSON_ERROR_NONE
+            && isset($decoded['resultInfo']['errors'][0]['details'])) {
+            return $decoded['resultInfo']['errors'][0]['details'];
+        }
+
+        // Fallback if parsing fails or shape doesn't match
+        return 'Failed to update order. Please try again or contact support.';
     }
 }
