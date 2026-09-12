@@ -12,20 +12,27 @@
         .hero-meta-item{font-size:.72rem;color:rgba(255,255,255,.45);display:flex;align-items:center;gap:.3rem}
 
         /* ── Pipeline ────────────────────────────────── */
-        .pipeline-wrap{background:#fff;border:1px solid #dee2e6;border-radius:.25rem;padding:.75rem 1rem;margin-bottom:1rem;overflow-x:auto}
-        .pipeline{display:flex;align-items:center;min-width:500px}
-        .pipe-step{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;position:relative}
-        .pipe-step:not(:last-child)::after{content:'';position:absolute;top:12px;left:calc(50% + 15px);right:calc(-50% + 15px);height:1.5px;background:#dee2e6}
+        .pipeline-wrap{background:#fff;border:1px solid #e9ecef;border-radius:.5rem;padding:1.25rem 1.5rem;margin-bottom:1rem;overflow-x:auto}
+        .pipeline{display:flex;align-items:flex-start;min-width:560px}
+        .pipe-step{display:flex;flex-direction:column;align-items:center;gap:8px;flex:1;position:relative}
+        .pipe-step:not(:last-child)::after{content:'';position:absolute;top:15px;left:calc(50% + 17px);right:calc(-50% + 17px);height:2px;background:#e9ecef;border-radius:1px}
         .pipe-step.done::after{background:#3f80ea}
         .pipe-step.err::after{background:#d9534f}
-        .pipe-dot{width:26px;height:26px;border-radius:50%;border:2px solid #dee2e6;background:#fff;display:flex;align-items:center;justify-content:center;font-size:.7rem;color:#adb5bd;z-index:1;flex-shrink:0}
-        .pipe-step.done .pipe-dot{background:#3f80ea;border-color:#3f80ea;color:#fff}
-        .pipe-step.active .pipe-dot{border-color:#3f80ea;color:#3f80ea}
+
+        .pipe-dot{width:32px;height:32px;border-radius:50%;border:2px solid #e9ecef;background:#fff;
+            display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:600;
+            color:#adb5bd;z-index:1;flex-shrink:0;transition:all .2s ease}
+        .pipe-step.done .pipe-dot{background:#3f80ea;border-color:#3f80ea;color:#fff;box-shadow:0 2px 6px rgba(63,128,234,.3)}
+        .pipe-step.active .pipe-dot{border-color:#3f80ea;color:#3f80ea;box-shadow:0 0 0 4px rgba(63,128,234,.12)}
         .pipe-step.err .pipe-dot{background:#fdf2f2;border-color:#d9534f;color:#d9534f}
-        .pipe-label{font-size:.65rem;color:#adb5bd;text-align:center;white-space:nowrap;font-weight:500;line-height:1.2}
+
+        .pipe-pulse{width:8px;height:8px;border-radius:50%;background:#3f80ea;animation:pipePulse 1.6s ease-in-out infinite}
+        @keyframes pipePulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.3);opacity:.6}}
+
+        .pipe-label{font-size:.7rem;color:#adb5bd;text-align:center;white-space:nowrap;font-weight:500;line-height:1.3}
         .pipe-step.done .pipe-label{color:#3f80ea}
-        .pipe-step.err  .pipe-label{color:#d9534f}
-        .pipe-step.active .pipe-label{color:#3f80ea;font-weight:600}
+        .pipe-step.err .pipe-label{color:#d9534f}
+        .pipe-step.active .pipe-label{color:#3f80ea;font-weight:700}
 
         /* ── Stat cards ──────────────────────────────── */
         .stat-card{background:#fff;border:1px solid #dee2e6;border-radius:.25rem;padding:.875rem 1rem}
