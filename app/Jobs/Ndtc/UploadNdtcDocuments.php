@@ -89,26 +89,41 @@ class UploadNdtcDocuments implements ShouldQueue
             ]);
 
         } catch (NdtcApiException $e) {
-        if ($e->isOrderNotFound()) {
-            $this->document->update([
-                'status'       => NdtcOrderDocument::STATUS_FAILED,
-                'upload_error' => 'NDTC order not found (404): ' . $e->errorDetails,
-            ]);
+            if ($e->isOrderNotFound()) {
+                $this->document->update([
+                    'status'       => NdtcOrderDocument::STATUS_FAILED,
+                    'upload_error' => 'NDTC order not found (404): ' . $e->errorDetails,
+                ]);
 
-            $this->order->update([
-                'status' => NdtcOrder::STATUS_NOT_FOUND,
-            ]);
+                $this->order->update([
+                    'status' => NdtcOrder::STATUS_NOT_FOUND,
+                ]);
 
-            Log::warning('NDTC order not found — marking order as NOT_FOUND, no retry', [
-                'order_id'    => $this->order->id,
-                'document_id' => $this->document->id,
-                'ndtc_order_id' => $this->order->ndtc_order_id,
-            ]);
+                Log::warning('NDTC order not found — marking order as NOT_FOUND, no retry', [
+                    'order_id'    => $this->order->id,
+                    'document_id' => $this->document->id,
+                    'ndtc_order_id' => $this->order->ndtc_order_id,
+                ]);
 
-            // Don't rethrow: retrying is pointless if NDTC doesn't recognize the order.
-            // This lets the job finish "normally" rather than exhausting retries into failed().
-            return;
-        }
+                // Don't rethrow: retrying is pointless if NDTC doesn't recognize the order.
+                // This lets the job finish "normally" rather than exhausting retries into failed().
+                return;
+            }
+
+            // Add new cases the same way, one `if` per behavior you need to distinguish:
+            if ($e->isFrontAndBackAlreadyAttached()) {
+                $this->document->update([
+                    'status'       => NdtcOrderDocument::STATUS_FAILED,
+                    'upload_error' => $e->errorDetails,
+                ]);
+
+                Log::warning('NDTC Front/Back already attached — no retry', [
+                    'order_id'    => $this->order->id,
+                    'document_id' => $this->document->id,
+                ]);
+
+                return;
+            }
 
         // Any other NdtcApiException falls through to the generic handling below.
         $this->handleGenericFailure($e);

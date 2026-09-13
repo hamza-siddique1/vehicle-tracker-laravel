@@ -302,7 +302,7 @@ class NdtcOrderController extends Controller
 
         try {
             $this->api->finalizeOrder($order->ndtc_order_id);
-        } catch (\Exception $e) { //hamza
+        } catch (\Exception $e) {
             $message = $this->extractApiErrorMessage($e);
             return back()->with('error', 'Failed to finalize order: ' . $message);
         }

@@ -810,206 +810,90 @@
     {{-- ══ TAB 2: DOCUMENTS ══════════════════════════════════ --}}
     <div class="tab-pane fade" id="tab-documents">
 
-    @php
-        $failedDocs   = $order->documents->where('status', 'FAILED');
-        $uploadedDocs = $order->documents->whereNotIn('status', ['FAILED','REPLACED']);
-    @endphp
+        @php
+            $failedDocs   = $order->documents->where('status', 'FAILED');
+            $uploadedDocs = $order->documents->whereNotIn('status', ['FAILED','REPLACED']);
+        @endphp
 
-    @if($failedDocs->count() > 0)
-        <div class="alert alert-warning d-flex align-items-start mb-3">
-            <i class="fas fa-exclamation-triangle mr-2 mt-1" style="flex-shrink:0"></i>
-            <div>
-                <strong>{{ $failedDocs->count() }} document(s) require attention.</strong>
-                Replace the flagged document(s) before resubmitting, or delete if no longer needed.
-            </div>
-        </div>
+        @include('pages.ndtc.partials._docs.failed')
+        @include('pages.ndtc.partials._docs.success')
 
-        <div class="section-divider">
-            <i class="fas fa-exclamation-circle text-danger"></i> Requires Action
-        </div>
-
-        @foreach($failedDocs as $doc)
-            <div class="doc-item doc-rejected mb-2">
-                <div class="doc-icon rejected">
-                    <i class="fas fa-file-pdf" style="color:#d9534f"></i>
-                </div>
-                <div class="doc-info">
-                    <div class="doc-name">{{ $doc->file_display_name ?? $doc->document_content }}</div>
-                    <div class="doc-meta">
-                        <span class="badge badge-danger" style="font-size:.65rem">
-                            <i class="fas fa-times mr-1"></i>Failed
-                        </span>
-                        @if($doc->file_mime_type) <span>{{ strtoupper(explode('/', $doc->file_mime_type)[1] ?? $doc->file_mime_type) }}</span> @endif
-                        @if($doc->file_size_bytes) <span>{{ round($doc->file_size_bytes / 1024, 1) }} KB</span> @endif
-                        @if($doc->uploaded_at) <span>Uploaded {{ $doc->uploaded_at->format('M d, Y') }}</span> @endif
+        @if(!$order->isTerminal())
+            <div class="section-divider mt-3"><i class="fas fa-plus"></i> Add More</div>
+            <form action="{{ route('ndtc.orders.documents.store', $order) }}"
+                method="POST"
+                enctype="multipart/form-data">
+                @csrf
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                        <label class="form-label small font-weight-bold">Document type</label>
+                        <select class="form-control form-control-sm" name="document_content">
+                            <optgroup label="— Common for TNL orders —">
+                                <option value="TITLE_FRONT_AND_BACK">Title Front and Back</option>
+                                <option value="TITLE_FRONT">Title Front only</option>
+                                <option value="TITLE_BACK">Title Back only</option>
+                                <option value="POWER_OF_ATTORNEY">Power of Attorney</option>
+                                <option value="SECURE_ELECTRONIC_POWER_OF_ATTORNEY">Secure Electronic Power of Attorney</option>
+                                <option value="ODOMETER_DISCLOSURE">Odometer Disclosure</option>
+                                <option value="POWER_OF_ATTORNEY_WITH_ODOMETER_DISCLOSURE">POA with Odometer Disclosure</option>
+                                <option value="BILL_OF_SALE">Bill of Sale</option>
+                                <option value="CERTIFICATE_OF_COMPLETION">Certificate of Completion</option>
+                            </optgroup>
+                            <optgroup label="— Supporting documents —">
+                                <option value="LIEN_RELEASE">Lien Release</option>
+                                <option value="LOAN_AGREEMENT">Loan Agreement</option>
+                                <option value="SECURITY_AGREEMENT">Security Agreement</option>
+                                <option value="TITLE_REASSIGNMENT">Title Reassignment</option>
+                                <option value="VIN_VERIFICATION">VIN Verification</option>
+                                <option value="MANUFACTURER_CERTIFICATE">Manufacturer Certificate</option>
+                                <option value="INSURANCE_SETTLEMENT">Insurance Settlement</option>
+                            </optgroup>
+                            <optgroup label="— Statements and corrections —">
+                                <option value="STATEMENT_OF_NO_TITLE">Statement of No Title</option>
+                                <option value="STATEMENT_OF_REPOSSESSION">Statement of Repossession</option>
+                                <option value="STATEMENT_OF_MISSING_EVIDENCE">Statement of Missing Evidence</option>
+                                <option value="STATEMENT_OF_IDENTITY">Statement of Identity</option>
+                                <option value="REQUEST_FOR_MISSING_EVIDENCE">Request for Missing Evidence</option>
+                                <option value="LETTER_OF_CORRECTION">Letter of Correction</option>
+                                <option value="ONE_AND_THE_SAME">One and the Same</option>
+                                <option value="DOING_BUSINESS_AS">Doing Business As</option>
+                                <option value="DECLARATION_PAGE">Declaration Page</option>
+                            </optgroup>
+                            <optgroup label="— Reports —">
+                                <option value="MVR_REPORT">MVR Report</option>
+                                <option value="NMVTIS_REPORT">NMVTIS Report</option>
+                            </optgroup>
+                            <optgroup label="— Other —">
+                                <option value="OTHER_EVIDENCE">Other Evidence</option>
+                            </optgroup>
+                        </select>
+                        <small class="form-text text-muted">
+                            For most Copart / IAAI TNL orders you will only need
+                            <strong>Title Front and Back</strong> and <strong>Power of Attorney</strong>.
+                        </small>
                     </div>
-                    @if($doc->upload_error)
-                        <div class="doc-reason">
-                            <i class="fas fa-exclamation-circle" style="flex-shrink:0;margin-top:1px"></i>
-                            {{ $doc->upload_error }}
+                    </div>
+                    <div class="col-md-5">
+                        <div class="form-group">
+                            <label class="form-label small font-weight-bold">File</label>
+                            <input type="file" class="form-control-file" name="document"
+                                accept=".pdf,.jpg,.jpeg,.png">
+                            <small class="form-text text-muted">PDF, JPG, PNG · Max 20MB · Min 300 DPI</small>
                         </div>
-                    @endif
-                </div>
-                <div class="doc-actions">
-                    @if($doc->status === 'FAILED' && is_null($doc->ndtc_document_id))
-                        <button class="btn btn-sm btn-outline-danger btn-xs"
-                                data-toggle="modal"
-                                data-target="#deleteDocModal"
-                                data-doc-id="{{ $doc->id }}"
-                                data-doc-name="{{ $doc->file_display_name ?? $doc->document_content }}">
-                            <i class="fas fa-trash mr-1"></i>Delete
-                        </button>
-                    @elseif($doc->canBeReplaced())
-                        <button class="btn btn-sm btn-danger btn-xs"
-                                data-toggle="modal"
-                                data-target="#replaceDocModal"
-                                data-doc-id="{{ $doc->id }}"
-                                data-doc-content="{{ $doc->document_content }}">
-                            <i class="fas fa-upload mr-1"></i>Replace
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger btn-xs"
-                                data-toggle="modal"
-                                data-target="#deleteDocModal"
-                                data-doc-id="{{ $doc->id }}"
-                                data-doc-name="{{ $doc->file_display_name ?? $doc->document_content }}">
-                            <i class="fas fa-trash mr-1"></i>Delete
-                        </button>
-                    @endif
-                </div>
-            </div>
-        @endforeach
-    @endif
-
-    @if($uploadedDocs->count() > 0)
-        <div class="section-divider">
-            <i class="fas fa-check-circle text-success"></i> Uploaded Documents
-        </div>
-
-        @foreach($uploadedDocs as $doc)
-            <div class="doc-item">
-                <div class="doc-icon">
-                    <i class="fas fa-file-pdf" style="color:#3f80ea"></i>
-                </div>
-                <div class="doc-info">
-                    <div class="doc-name">{{ $doc->file_display_name ?? $doc->document_content }}</div>
-                    <div class="doc-meta">
-                        <span class="badge badge-success" style="font-size:.65rem">
-                            <i class="fas fa-check mr-1"></i>{{ ucfirst(strtolower($doc->status)) }}
-                        </span>
-                        @if($doc->file_mime_type)
-                            <span>{{ strtoupper(explode('/', $doc->file_mime_type)[1] ?? '') }}</span>
-                        @endif
-                        @if($doc->file_size_bytes)
-                            <span>{{ round($doc->file_size_bytes / 1024, 1) }} KB</span>
-                        @endif
-                        @if($doc->is_system_generated)
-                            <span class="text-muted">System generated</span>
-                        @elseif($doc->uploaded_at)
-                            <span>Uploaded {{ $doc->uploaded_at->format('M d, Y') }}</span>
-                        @endif
-                        <span class="badge badge-secondary" style="font-size:.6rem">
-                            {{ $doc->document_content }}
-                        </span>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <div class="form-group w-100">
+                            <button type="submit" class="btn btn-primary btn-sm btn-block">
+                                <i class="fas fa-upload mr-1"></i> Upload Document
+                            </button>
+                        </div>
                     </div>
                 </div>
-                <div class="doc-actions">
-                    @if($doc->ndtc_document_id)
-                        <a href="{{ route('ndtc.orders.documents.view', [$order, $doc]) }}"
-                           class="btn btn-sm btn-outline-secondary btn-xs" target="_blank">
-                            <i class="fas fa-eye mr-1"></i>View hamza
-                        </a>
-                    @endif
-                    @if($doc->canBeReplaced() && !$order->isTerminal())
-                        <button class="btn btn-sm btn-outline-primary btn-xs"
-                                data-toggle="modal"
-                                data-target="#replaceDocModal"
-                                data-doc-id="{{ $doc->id }}"
-                                data-doc-content="{{ $doc->document_content }}">
-                            <i class="fas fa-upload"></i>
-                        </button>
-                    @endif
-                </div>
-            </div>
-        @endforeach
-    @endif
+            </form>
+        @endif
 
-    @if(!$order->isTerminal())
-        <div class="section-divider mt-3"><i class="fas fa-plus"></i> Add More</div>
-        <form action="{{ route('ndtc.orders.documents.store', $order) }}"
-              method="POST"
-              enctype="multipart/form-data">
-            @csrf
-            <div class="row">
-                <div class="col-md-4">
-                    <div class="form-group">
-                      <label class="form-label small font-weight-bold">Document type</label>
-                      <select class="form-control form-control-sm" name="document_content">
-                          <optgroup label="— Common for TNL orders —">
-                              <option value="TITLE_FRONT_AND_BACK">Title Front and Back</option>
-                              <option value="TITLE_FRONT">Title Front only</option>
-                              <option value="TITLE_BACK">Title Back only</option>
-                              <option value="POWER_OF_ATTORNEY">Power of Attorney</option>
-                              <option value="SECURE_ELECTRONIC_POWER_OF_ATTORNEY">Secure Electronic Power of Attorney</option>
-                              <option value="ODOMETER_DISCLOSURE">Odometer Disclosure</option>
-                              <option value="POWER_OF_ATTORNEY_WITH_ODOMETER_DISCLOSURE">POA with Odometer Disclosure</option>
-                              <option value="BILL_OF_SALE">Bill of Sale</option>
-                              <option value="CERTIFICATE_OF_COMPLETION">Certificate of Completion</option>
-                          </optgroup>
-                          <optgroup label="— Supporting documents —">
-                              <option value="LIEN_RELEASE">Lien Release</option>
-                              <option value="LOAN_AGREEMENT">Loan Agreement</option>
-                              <option value="SECURITY_AGREEMENT">Security Agreement</option>
-                              <option value="TITLE_REASSIGNMENT">Title Reassignment</option>
-                              <option value="VIN_VERIFICATION">VIN Verification</option>
-                              <option value="MANUFACTURER_CERTIFICATE">Manufacturer Certificate</option>
-                              <option value="INSURANCE_SETTLEMENT">Insurance Settlement</option>
-                          </optgroup>
-                          <optgroup label="— Statements and corrections —">
-                              <option value="STATEMENT_OF_NO_TITLE">Statement of No Title</option>
-                              <option value="STATEMENT_OF_REPOSSESSION">Statement of Repossession</option>
-                              <option value="STATEMENT_OF_MISSING_EVIDENCE">Statement of Missing Evidence</option>
-                              <option value="STATEMENT_OF_IDENTITY">Statement of Identity</option>
-                              <option value="REQUEST_FOR_MISSING_EVIDENCE">Request for Missing Evidence</option>
-                              <option value="LETTER_OF_CORRECTION">Letter of Correction</option>
-                              <option value="ONE_AND_THE_SAME">One and the Same</option>
-                              <option value="DOING_BUSINESS_AS">Doing Business As</option>
-                              <option value="DECLARATION_PAGE">Declaration Page</option>
-                          </optgroup>
-                          <optgroup label="— Reports —">
-                              <option value="MVR_REPORT">MVR Report</option>
-                              <option value="NMVTIS_REPORT">NMVTIS Report</option>
-                          </optgroup>
-                          <optgroup label="— Other —">
-                              <option value="OTHER_EVIDENCE">Other Evidence</option>
-                          </optgroup>
-                      </select>
-                      <small class="form-text text-muted">
-                          For most Copart / IAAI TNL orders you will only need
-                          <strong>Title Front and Back</strong> and <strong>Power of Attorney</strong>.
-                      </small>
-                  </div>
-                </div>
-                <div class="col-md-5">
-                    <div class="form-group">
-                        <label class="form-label small font-weight-bold">File</label>
-                        <input type="file" class="form-control-file" name="document"
-                               accept=".pdf,.jpg,.jpeg,.png">
-                        <small class="form-text text-muted">PDF, JPG, PNG · Max 20MB · Min 300 DPI</small>
-                    </div>
-                </div>
-                <div class="col-md-3 d-flex align-items-end">
-                    <div class="form-group w-100">
-                        <button type="submit" class="btn btn-primary btn-sm btn-block">
-                            <i class="fas fa-upload mr-1"></i> Upload Document
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </form>
-    @endif
-
-</div>{{-- /tab-documents --}}
-
+    </div>
     {{-- /tab-documents --}}
 
     {{-- ══ TAB 3: TIMELINE ═══════════════════════════════════ --}}

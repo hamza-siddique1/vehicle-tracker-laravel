@@ -68,6 +68,7 @@ class ProcessNdtcWebhook implements ShouldQueue
     {
         $order->update([
             'status'            => NdtcOrder::STATUS_READY_TO_FINALIZE,
+            'finalized'         => false,
             'ready_to_finalize' => true,
             'ndtc_status'       => $this->payload['status'],
             'ready_to_finalize_at'       => now(),

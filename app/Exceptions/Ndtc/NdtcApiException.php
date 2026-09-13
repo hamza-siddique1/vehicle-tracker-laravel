@@ -34,4 +34,11 @@ class NdtcApiException extends \Exception
             && $this->errorCode === '1002'
             && str_contains((string) $this->errorDetails, 'Order not found');
     }
+
+    public function isFrontAndBackAlreadyAttached(): bool
+    {
+        return $this->httpStatusCode === 400
+            && $this->errorCode === '1002'
+            && str_contains((string) $this->errorDetails, 'Front and Back of Title has already been attached');
+    }
 }
