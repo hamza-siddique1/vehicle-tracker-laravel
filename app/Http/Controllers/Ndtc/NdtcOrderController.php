@@ -273,6 +273,7 @@ class NdtcOrderController extends Controller
 
         try {
             $this->api->updateOrder($order->ndtc_order_id, $payload, $order->transaction_type);
+            $this->api->finalizeOrder($order->ndtc_order_id);
         } catch (\Exception $e) {
             $message = $this->extractApiErrorMessage($e);
 
@@ -283,9 +284,10 @@ class NdtcOrderController extends Controller
 
         $order->update([
             'order_payload'      => $payload,
-            'status'             => NdtcOrder::STATUS_DRAFT,
-            'finalized'          => false,
-            'ready_to_finalize'  => false,
+            'status'             => NdtcOrder::STATUS_PROCESSING,
+            'finalized'         => true,
+            'finalized_at'      => now(),
+            'submission_count'  => $order->submission_count + 1,
         ]);
 
         return redirect()

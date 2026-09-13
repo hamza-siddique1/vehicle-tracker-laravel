@@ -29,7 +29,7 @@
         @endif
 
         {{-- VIN (Read-only) --}}
-        <div class="form-group col-md" style="padding-left: 1rem;">
+        <div class="form-group">
             <label class="font-weight-bold">
                 VIN <span class="required-note">*</span>
             </label>

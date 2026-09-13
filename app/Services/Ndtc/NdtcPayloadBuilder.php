@@ -43,7 +43,7 @@ class NdtcPayloadBuilder
 
             // ── REQUESTED TITLE ───────────────────────────────
             'requestedTitle' => [
-                'titleType' => 'PAPER',
+                'titleType' => $request->input('requested_title_type', 'PAPER'),
             ],
 
             // ── EVIDENCE ──────────────────────────────────────
@@ -101,6 +101,10 @@ class NdtcPayloadBuilder
             // ── CLIENT INTEGRATION ────────────────────────────
             'clientIntegration' => [
                 'correlationId' => $correlationId,
+            ],
+
+            'properties' => [
+                'notes' => $request->input('notes'),
             ],
         ];
     }
