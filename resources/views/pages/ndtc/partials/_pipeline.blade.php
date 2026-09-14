@@ -17,7 +17,7 @@
             if ($order->ready_for_documents_at) $highestReached = 2;
             if ($order->ready_to_finalize_at)   $highestReached = 3;
             if ($order->finalized_at)           $highestReached = 4;
-            if ($rank >= 5)                     $highestReached = 5;
+            if ($rank >= 5 || $isRejected || $isCancelled || $isApproved) $highestReached = 5;
         @endphp
         @foreach($steps as $step => $label)
             @php
@@ -31,8 +31,9 @@
                     $cls = $isApproved ? 'done' : 'wait';
                 } else {
                     if ($highestReached > $step)      $cls = 'done';
-                    elseif ($highestReached === $step) $cls = 'active';
-                    else                                $cls = 'wait';
+                    elseif ($highestReached === $step && !$isRejected && !$isCancelled) $cls = 'active';
+                    elseif ($highestReached === $step) $cls = 'done'; // reached but order moved on to rejected/cancelled
+                    else $cls = 'wait';
                 }
             @endphp
             <div class="pipe-step {{ $cls }}">

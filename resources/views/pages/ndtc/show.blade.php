@@ -163,7 +163,7 @@
         'AGING'               => 2,
         'READY_TO_FINALIZE'   => 3,
         'PROCESSING'          => 5,
-        'MANUAL_REVIEW','ON_HOLD' => 5,
+        'MANUAL_REVIEW','ON_HOLD', 'MANUAL_REVIEW_REQUIRED' => 5,
         'REJECTED'            => 6,
         'APPROVED','COMPLETED'=> 7,
         'CANCELLED'           => 6,
@@ -987,12 +987,6 @@
                         then resubmit this same order.
                     </div>
                 </div>
-                <form action="{{ route('ndtc.orders.update', $order) }}" method="POST">
-                    @csrf @method('PUT')
-                    <button type="submit" class="btn btn-danger flex-shrink-0">
-                        <i class="fas fa-paper-plane mr-1"></i>Resubmit Order
-                    </button>
-                </form>
             </div>
 
             @forelse($rejections as $i => $rejection)
