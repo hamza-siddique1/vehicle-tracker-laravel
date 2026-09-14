@@ -10,6 +10,14 @@
                 6 => $isCancelled ? 'Cancelled' : 'Rejected',
                 7 => 'Approved',
             ];
+
+            // Determine the highest step actually reached, based on real milestones —
+            // not just $rank, so nothing can "skip" past an earlier unset step.
+            $highestReached = 1;
+            if ($order->ready_for_documents_at) $highestReached = 2;
+            if ($order->ready_to_finalize_at)   $highestReached = 3;
+            if ($order->finalized_at)           $highestReached = 4;
+            if ($rank >= 5)                     $highestReached = 5;
         @endphp
         @foreach($steps as $step => $label)
             @php
@@ -21,12 +29,10 @@
                     else                   $cls = 'wait';
                 } elseif ($step === 7) {
                     $cls = $isApproved ? 'done' : 'wait';
-                } elseif ($step === 4) {
-                    $cls = $order->ready_to_finalize_at ? 'done' : ($rank === 4 ? 'active' : 'wait');
                 } else {
-                    if ($rank > $step)      $cls = 'done';
-                    elseif ($rank === $step) $cls = 'active';
-                    else                    $cls = 'wait';
+                    if ($highestReached > $step)      $cls = 'done';
+                    elseif ($highestReached === $step) $cls = 'active';
+                    else                                $cls = 'wait';
                 }
             @endphp
             <div class="pipe-step {{ $cls }}">
