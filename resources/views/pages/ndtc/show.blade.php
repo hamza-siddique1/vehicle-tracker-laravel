@@ -252,7 +252,7 @@
             @if(!empty($rejections[0]['reasons'][0]))
                 {{ $rejections[0]['reasons'][0] }}
             @endif
-            Replace the flagged document in the <a href="#tab-documents" class="alert-link" data-toggle="tab">Documents tab</a>,
+            or Replace the flagged document in the <a href="#tab-documents" class="alert-link" data-toggle="tab">Documents tab</a>,
             then resubmit this same order. <strong>Do not create a new order.</strong>
         </div>
     </div>
@@ -820,77 +820,95 @@
 
         @if(!$order->isTerminal())
             <div class="section-divider mt-3"><i class="fas fa-plus"></i> Add More</div>
-            <form action="{{ route('ndtc.orders.documents.store', $order) }}"
-                method="POST"
-                enctype="multipart/form-data">
-                @csrf
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="form-group">
-                        <label class="form-label small font-weight-bold">Document type</label>
-                        <select class="form-control form-control-sm" name="document_content">
-                            <optgroup label="— Common for TNL orders —">
-                                <option value="TITLE_FRONT_AND_BACK">Title Front and Back</option>
-                                <option value="TITLE_FRONT">Title Front only</option>
-                                <option value="TITLE_BACK">Title Back only</option>
-                                <option value="POWER_OF_ATTORNEY">Power of Attorney</option>
-                                <option value="SECURE_ELECTRONIC_POWER_OF_ATTORNEY">Secure Electronic Power of Attorney</option>
-                                <option value="ODOMETER_DISCLOSURE">Odometer Disclosure</option>
-                                <option value="POWER_OF_ATTORNEY_WITH_ODOMETER_DISCLOSURE">POA with Odometer Disclosure</option>
-                                <option value="BILL_OF_SALE">Bill of Sale</option>
-                                <option value="CERTIFICATE_OF_COMPLETION">Certificate of Completion</option>
-                            </optgroup>
-                            <optgroup label="— Supporting documents —">
-                                <option value="LIEN_RELEASE">Lien Release</option>
-                                <option value="LOAN_AGREEMENT">Loan Agreement</option>
-                                <option value="SECURITY_AGREEMENT">Security Agreement</option>
-                                <option value="TITLE_REASSIGNMENT">Title Reassignment</option>
-                                <option value="VIN_VERIFICATION">VIN Verification</option>
-                                <option value="MANUFACTURER_CERTIFICATE">Manufacturer Certificate</option>
-                                <option value="INSURANCE_SETTLEMENT">Insurance Settlement</option>
-                            </optgroup>
-                            <optgroup label="— Statements and corrections —">
-                                <option value="STATEMENT_OF_NO_TITLE">Statement of No Title</option>
-                                <option value="STATEMENT_OF_REPOSSESSION">Statement of Repossession</option>
-                                <option value="STATEMENT_OF_MISSING_EVIDENCE">Statement of Missing Evidence</option>
-                                <option value="STATEMENT_OF_IDENTITY">Statement of Identity</option>
-                                <option value="REQUEST_FOR_MISSING_EVIDENCE">Request for Missing Evidence</option>
-                                <option value="LETTER_OF_CORRECTION">Letter of Correction</option>
-                                <option value="ONE_AND_THE_SAME">One and the Same</option>
-                                <option value="DOING_BUSINESS_AS">Doing Business As</option>
-                                <option value="DECLARATION_PAGE">Declaration Page</option>
-                            </optgroup>
-                            <optgroup label="— Reports —">
-                                <option value="MVR_REPORT">MVR Report</option>
-                                <option value="NMVTIS_REPORT">NMVTIS Report</option>
-                            </optgroup>
-                            <optgroup label="— Other —">
-                                <option value="OTHER_EVIDENCE">Other Evidence</option>
-                            </optgroup>
-                        </select>
-                        <small class="form-text text-muted">
-                            For most Copart / IAAI TNL orders you will only need
-                            <strong>Title Front and Back</strong> and <strong>Power of Attorney</strong>.
-                        </small>
-                    </div>
-                    </div>
-                    <div class="col-md-5">
-                        <div class="form-group">
-                            <label class="form-label small font-weight-bold">File</label>
-                            <input type="file" class="form-control-file" name="document"
-                                accept=".pdf,.jpg,.jpeg,.png">
-                            <small class="form-text text-muted">PDF, JPG, PNG · Max 20MB · Min 300 DPI</small>
+                <form action="{{ route('ndtc.orders.documents.store', $order) }}"
+                    method="POST"
+                    enctype="multipart/form-data"
+                    id="docUploadForm">
+                    @csrf
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                            <label class="form-label small font-weight-bold">Document type</label>
+                            <select class="form-control form-control-sm" name="document_content">
+                                <optgroup label="— Common for TNL orders —">
+                                    <option value="TITLE_FRONT_AND_BACK">Title Front and Back</option>
+                                    <option value="TITLE_FRONT">Title Front only</option>
+                                    <option value="TITLE_BACK">Title Back only</option>
+                                    <option value="POWER_OF_ATTORNEY">Power of Attorney</option>
+                                    <option value="SECURE_ELECTRONIC_POWER_OF_ATTORNEY">Secure Electronic Power of Attorney</option>
+                                    <option value="ODOMETER_DISCLOSURE">Odometer Disclosure</option>
+                                    <option value="POWER_OF_ATTORNEY_WITH_ODOMETER_DISCLOSURE">POA with Odometer Disclosure</option>
+                                    <option value="BILL_OF_SALE">Bill of Sale</option>
+                                    <option value="CERTIFICATE_OF_COMPLETION">Certificate of Completion</option>
+                                </optgroup>
+                                <optgroup label="— Supporting documents —">
+                                    <option value="LIEN_RELEASE">Lien Release</option>
+                                    <option value="LOAN_AGREEMENT">Loan Agreement</option>
+                                    <option value="SECURITY_AGREEMENT">Security Agreement</option>
+                                    <option value="TITLE_REASSIGNMENT">Title Reassignment</option>
+                                    <option value="VIN_VERIFICATION">VIN Verification</option>
+                                    <option value="MANUFACTURER_CERTIFICATE">Manufacturer Certificate</option>
+                                    <option value="INSURANCE_SETTLEMENT">Insurance Settlement</option>
+                                </optgroup>
+                                <optgroup label="— Statements and corrections —">
+                                    <option value="STATEMENT_OF_NO_TITLE">Statement of No Title</option>
+                                    <option value="STATEMENT_OF_REPOSSESSION">Statement of Repossession</option>
+                                    <option value="STATEMENT_OF_MISSING_EVIDENCE">Statement of Missing Evidence</option>
+                                    <option value="STATEMENT_OF_IDENTITY">Statement of Identity</option>
+                                    <option value="REQUEST_FOR_MISSING_EVIDENCE">Request for Missing Evidence</option>
+                                    <option value="LETTER_OF_CORRECTION">Letter of Correction</option>
+                                    <option value="ONE_AND_THE_SAME">One and the Same</option>
+                                    <option value="DOING_BUSINESS_AS">Doing Business As</option>
+                                    <option value="DECLARATION_PAGE">Declaration Page</option>
+                                </optgroup>
+                                <optgroup label="— Reports —">
+                                    <option value="MVR_REPORT">MVR Report</option>
+                                    <option value="NMVTIS_REPORT">NMVTIS Report</option>
+                                </optgroup>
+                                <optgroup label="— Other —">
+                                    <option value="OTHER_EVIDENCE">Other Evidence</option>
+                                </optgroup>
+                            </select>
+                            <small class="form-text text-muted">
+                                For most Copart / IAAI TNL orders you will only need
+                                <strong>Title Front and Back</strong> and <strong>Power of Attorney</strong>.
+                            </small>
+                        </div>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="form-group">
+                                <label class="form-label small font-weight-bold">File</label>
+                                <input type="file" class="form-control-file" name="document" id="docFileInput"
+                                    accept=".pdf,.jpg,.jpeg,.png">
+                                <small class="form-text text-muted">PDF, JPG, PNG · Max 20MB · Min 300 DPI</small>
+
+                                {{-- Preview area --}}
+                                <div id="docPreviewArea" class="mt-2" style="display:none;">
+                                    <div class="d-flex align-items-center border rounded p-2" style="gap:10px; max-width:260px;">
+                                        <div id="docPreviewThumb" style="width:48px;height:48px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#f8f9fa;border-radius:4px;overflow:hidden;">
+                                            <i class="fas fa-file-pdf" style="font-size:1.5rem;color:#d9534f;" id="docPreviewIcon"></i>
+                                            <img id="docPreviewImg" src="" style="display:none;max-width:100%;max-height:100%;object-fit:cover;">
+                                        </div>
+                                        <div style="min-width:0;">
+                                            <div id="docPreviewName" class="small font-weight-bold text-truncate" style="max-width:180px;"></div>
+                                            <div id="docPreviewSize" class="small text-muted"></div>
+                                        </div>
+                                        <button type="button" id="docPreviewClear" class="btn btn-sm btn-outline-secondary ml-auto" style="padding:2px 8px;">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <div class="form-group w-100">
+                                <button type="submit" class="btn btn-primary btn-sm btn-block">
+                                    <i class="fas fa-upload mr-1"></i> Upload Document
+                                </button>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-md-3 d-flex align-items-end">
-                        <div class="form-group w-100">
-                            <button type="submit" class="btn btn-primary btn-sm btn-block">
-                                <i class="fas fa-upload mr-1"></i> Upload Document
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </form>
+                </form>
         @endif
 
     </div>
@@ -1260,6 +1278,54 @@ $(document).ready(function () {
             });
         }, 30000); // poll every 2 seconds
     @endif
+
+    $(function () {
+        const $input       = $('#docFileInput');
+        const $previewArea = $('#docPreviewArea');
+        const $previewImg  = $('#docPreviewImg');
+        const $previewIcon = $('#docPreviewIcon');
+        const $previewName = $('#docPreviewName');
+        const $previewSize = $('#docPreviewSize');
+        const $clearBtn    = $('#docPreviewClear');
+
+        function formatSize(bytes) {
+            return bytes > 1024 * 1024
+                ? (bytes / (1024 * 1024)).toFixed(1) + ' MB'
+                : (bytes / 1024).toFixed(1) + ' KB';
+        }
+
+        $input.on('change', function () {
+            const file = this.files[0];
+
+            if (!file) {
+                $previewArea.hide();
+                return;
+            }
+
+            $previewName.text(file.name);
+            $previewSize.text(formatSize(file.size));
+            $previewArea.show();
+
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    $previewImg.attr('src', e.target.result).show();
+                    $previewIcon.hide();
+                };
+                reader.readAsDataURL(file);
+            } else {
+                // PDF or other — show icon instead of a rendered thumbnail
+                $previewImg.attr('src', '').hide();
+                $previewIcon.show();
+            }
+        });
+
+        $clearBtn.on('click', function () {
+            $input.val('');
+            $previewArea.hide();
+            $previewImg.attr('src', '');
+        });
+    });
 
 });
 </script>

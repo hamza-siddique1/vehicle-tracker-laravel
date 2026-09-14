@@ -2,6 +2,7 @@
 
 namespace App\Exceptions;
 
+use App\Exceptions\Ndtc\NdtcApiException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Throwable;
 
@@ -32,10 +33,14 @@ class Handler extends ExceptionHandler
      *
      * @return void
      */
-    public function register()
+    public function register(): void
     {
-        $this->reportable(function (Throwable $e) {
-            //
+        $this->renderable(function (NdtcApiException $e, $request) {
+            $message = $e->errorDetails ?? $e->errorDescription ?? 'NDTC request failed. Please try again.';
+
+            return redirect()
+                ->back()
+                ->with('error', $message);
         });
     }
 }
