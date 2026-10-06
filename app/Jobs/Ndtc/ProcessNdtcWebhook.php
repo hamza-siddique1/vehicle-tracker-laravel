@@ -110,6 +110,7 @@ class ProcessNdtcWebhook implements ShouldQueue
             'ndtc_status'       => $this->payload['status'],
             'rejection_reasons' => $rejections,
             'webhook_payload'   => $this->payload,
+            'request_payload'   => $order->order_payload,
             'rejected_at'       => now(),
         ]);
 

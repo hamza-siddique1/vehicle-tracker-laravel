@@ -23,7 +23,7 @@ return new class extends Migration
             // Which attempt this rejection was for
             // e.g. 1 = first submission rejected, 2 = second etc.
 
-            $table->string('ndtc_status', 60)->nullable();
+            $table->string('ndtc_status', 30)->nullable();
             // AUTO_REJECTED or MANUALLY_REJECTED
 
             $table->json('rejection_reasons');
@@ -31,6 +31,7 @@ return new class extends Migration
             // [{ element, code, reasons: [] }]
 
             $table->json('webhook_payload')->nullable();
+            $table->json('request_payload')->nullable();
             // Full webhook at time of rejection
             // Useful when disputing a rejection with CHAMP support
 

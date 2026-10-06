@@ -15,12 +15,14 @@ class NdtcRejectionHistory extends Model
         'ndtc_status',
         'rejection_reasons',
         'webhook_payload',
+        'request_payload',
         'rejected_at',
     ];
 
     protected $casts = [
         'rejection_reasons' => 'array',
         'webhook_payload'   => 'array',
+        'request_payload'   => 'array',
         'rejected_at'       => 'datetime',
     ];
 
