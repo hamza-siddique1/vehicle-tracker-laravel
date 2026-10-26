@@ -16,12 +16,10 @@
                     @if (count($vehicles_with_days_in_yard))
                         @foreach ($vehicles_with_days_in_yard as $vehicle)
                             <tr id="{{ $vehicle->id }}">
-                                <td><a href="#" data-toggle="modal"
-                                        data-target="#modal-vehicle-detail">{{ $vehicle->description }}</a></td>
+                                <td><a href="{{ route('vehicles.show', $vehicle->id) }}">{{ $vehicle->description }}</a></td>
                                 <td><a href="https://seller.copart.com/lotdisplay/{{ $vehicle->auction_lot }}"
                                         target="_blank">{{ $vehicle->vin }}</a></td>
-                                <td><a href="#" data-toggle="modal"
-                                        data-target="#modal-vehicle-detail">{{ $vehicle->meta_value }}</a></td>
+                                <td><a href="{{ route('vehicles.show', $vehicle->id) }}">{{ $vehicle->meta_value }}</a></td>
                             </tr>
                         @endforeach
                     @else
@@ -55,8 +53,7 @@
                     @if (count($vehicles_sold))
                         @foreach ($vehicles_sold as $vehicle)
                             <tr id="{{ $vehicle->id }}">
-                                <td><a href="#" data-toggle="modal"
-                                        data-target="#modal-vehicle-detail">{{ $vehicle->description }}</a></td>
+                                <td><a href="{{ route('vehicles.show', $vehicle->id) }}">{{ $vehicle->description }}</a></td>
                                         <td>
                                             @if ($vehicle->auction_lot)
                                                 <a href="https://seller.copart.com/lotdisplay/{{ $vehicle->auction_lot }}"

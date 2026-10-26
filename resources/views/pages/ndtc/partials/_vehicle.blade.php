@@ -5,10 +5,7 @@
             <i class="align-middle mr-2" data-feather="truck"></i>
             Vehicle Information <span class="required-note">*</span>
         </h5>
-        <a href="#"
-           data-toggle="modal"
-           data-target="#modal-vehicle-detail"
-           data-id="{{ $vehicle->id }}"
+        <a href="{{ route('vehicles.show', $vehicle->id) }}"
            class="btn btn-sm btn-outline-success">
             <i class="align-middle mr-1" data-feather="edit-2"></i>Edit Vehicle Data
         </a>

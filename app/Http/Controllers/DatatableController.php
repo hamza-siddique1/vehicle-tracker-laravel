@@ -82,7 +82,7 @@ class DatatableController extends Controller
                 </form>
                 ';
 
-            $vehicle->description = sprintf("<a data-toggle='modal' data-target='#modal-vehicle-detail' data-id='%s' style='color: #3f80ea;'>%s</a>", $vehicle->id, $vehicle->description);
+            $vehicle->description = sprintf("<a href='%s' style='color: #3f80ea;'>%s</a>", route('vehicles.show', $vehicle->id), e($vehicle->description));
 
             if ($vehicle->source == 'iaai') {
                 $vehicle->purchase_lot = sprintf("<a href='https://www.iaai.com/PurchaseHistory' target='_blank' style='color: red'>%s</a>", $vehicle->purchase_lot);
@@ -220,7 +220,7 @@ class DatatableController extends Controller
                     </form>
                     ';
 
-            $vehicle->description = sprintf("<a data-toggle='modal' data-target='#modal-vehicle-detail' data-id='%s'>%s</a>", $vehicle->id, $vehicle->description);
+            $vehicle->description = sprintf("<a href='%s'>%s</a>", route('vehicles.show', $vehicle->id), e($vehicle->description));
 
             $vehicle->auction_lot = sprintf("<a href='https://seller.copart.com/lotdisplay/%s' target='_blank'>%s</a>", $vehicle->auction_lot, $vehicle->auction_lot);
 

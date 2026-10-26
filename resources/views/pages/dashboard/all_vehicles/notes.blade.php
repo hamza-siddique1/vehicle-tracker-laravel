@@ -29,8 +29,7 @@
                             @foreach ($vehicles_with_notes as $vehicle)
                                 <tr id="{{ $vehicle->vehicle_id }}">
                                     <td>{{ $loop->iteration }}</td>
-                                    <td><a href="#" data-toggle="modal"
-                                            data-target="#modal-vehicle-detail">{{ $vehicle->description }}</a></td>
+                                    <td><a href="{{ route('vehicles.show', $vehicle->id) }}">{{ $vehicle->description }}</a></td>
                                     <td>
                                         @if ($vehicle->auction_lot)
                                             <a href="https://seller.copart.com/lotdisplay/{{ $vehicle->auction_lot}}"
