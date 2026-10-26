@@ -24,8 +24,35 @@
 @php
     $today      = now()->format('Y-m-d');
     $dateFields = ['left_location', 'date_paid'];
-    $lockedFields = ['id', 'created_at', 'updated_at'];
-    $label      = fn ($k) => strtoupper(str_replace('_', ' ', $k));
+    $lockedFields = ['id', 'created_at', 'updated_at', 'deleted_at'];
+
+    $labels = [
+        'id'                 => 'Vehicle ID',
+        'vin'                => 'VIN Number',
+        'purchase_lot'       => 'Purchase Lot Number',
+        'auction_lot'        => 'Auction Lot Number',
+        'source'             => 'Source',
+        'location'           => 'Current Location',
+        'description'        => 'Year-Make-Model',
+        'left_location'     => 'Left Location',
+        'date_paid'          => 'Purchase Date',
+        'invoice_amount'     => 'Purchase Amount($)',
+        'created_at'         => 'Date Entered',
+        'deleted_at'         => 'Deleted At',
+        'claim_number'       => 'Claim Number',
+        'status'             => 'Current Status',
+        'primary_damage'     => 'Primary Damage',
+        'keys'               => 'Has Keys',
+        'drivability_rating' => 'Engine Status',
+        'odometer'           => 'Mileage',
+        'odometer_brand'     => 'Odometer',
+        'days_in_yard'       => 'Days In Yard',
+        'secondary_damage'   => 'Secondary Damage',
+        'sale_title_state'   => 'Sale Title State',
+        'sale_title_type'    => 'Sale Title Type',
+        'sale_price'         => 'Sale Price',
+    ];
+    $label = fn ($k) => $labels[$k] ?? ucwords(str_replace('_', ' ', $k));
 @endphp
 
 <div class="container-fluid py-3">
@@ -36,7 +63,15 @@
             <h4 class="mb-0">Vehicle #{{ $vehicle->id }}</h4>
         </div>
         <div class="d-flex">
-            <button type="button" class="btn btn-success" id="create-ndtc-order">Create NDTC Order</button>
+            @if (in_array(auth()->user()->role, ['admin', 'ndtc_manager']))
+                @if ($ndtcOrder)
+                    <a href="{{ route('ndtc.orders.show', $ndtcOrder) }}" class="btn btn-info">View NDTC Order</a>
+                @endif
+                {{-- a new order is only possible when there is none, or the last one is finished --}}
+                @if (! $ndtcOrder || in_array($ndtcOrder->status, \App\Models\NdtcOrder::TERMINAL_STATUSES))
+                    <a href="{{ route('ndtc.orders.create', $vehicle->id) }}" class="btn btn-success ml-2">Create NDTC Order</a>
+                @endif
+            @endif
             <button type="submit" form="vehicle-form" class="btn btn-primary ml-2">Save changes</button>
         </div>
     </div>

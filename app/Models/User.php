@@ -68,6 +68,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'admin' => 'Admin',
         'vehicle_manager' => 'Vehicle Manager',
         'yard_manager' => 'Yard Manager',
+        'ndtc_manager' => 'NDTC Manager',
         'viewer' => 'Viewer',
     ];
 }

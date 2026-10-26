@@ -21,7 +21,7 @@ class VehicleController extends Controller
     public function __construct()
     {
         $this->middleware('vehicle_manager')->only('destroy'); // Vehicle manager and higher roles can delete
-        $this->middleware('yard_manager')->only('update'); // Yard manager and higher roles can edit
+        $this->middleware('vehicle_editor')->only('update'); // Yard manager and higher roles can edit
     }
 
     private const META_KEYS = [
@@ -597,7 +597,11 @@ class VehicleController extends Controller
 
         $notes = $vehicle->notes()->with('user')->latest()->get();
 
+        // latest NDTC order for this vehicle decides which button the page shows
+        $ndtcOrder = \App\Models\NdtcOrder::where('vin', $vehicle->vin)->latest('id')->first();
+
         return view('pages.vehicle.show', [
+            'ndtcOrder'   => $ndtcOrder,
             'vehicle'     => $vehicle,
             'vehicleData' => $vehicleData,
             'metas'       => $orderedMetas,

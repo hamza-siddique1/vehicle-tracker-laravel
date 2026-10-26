@@ -68,5 +68,7 @@ class Kernel extends HttpKernel
         'admin' => AdminMiddleware::class,
         'vehicle_manager' => VehicleManagerMiddleware::class,
         'yard_manager' => YardManagerMiddleware::class,
+        'ndtc' => \App\Http\Middleware\NdtcMiddleware::class,
+        'vehicle_editor' => \App\Http\Middleware\VehicleEditorMiddleware::class,
     ];
 }

@@ -5,7 +5,7 @@ use App\Http\Controllers\Ndtc\NdtcWebhookController;
 use Illuminate\Support\Facades\Route;
 
 // ── Authenticated NDTC routes ─────────────────────────────────
-Route::prefix('ndtc')->name('ndtc.')->middleware(['auth'])->group(function () {
+Route::prefix('ndtc')->name('ndtc.')->middleware(['auth', 'ndtc'])->group(function () {
 
     // Orders
     Route::get('orders',                    [NdtcOrderController::class, 'index'])
@@ -54,6 +54,7 @@ Route::post('webhooks/ndtc', [NdtcWebhookController::class, 'handle'])
 
 
 Route::delete('orders/{order}/archive', [NdtcOrderController::class, 'archive'])
+    ->middleware(['auth', 'ndtc'])
     ->name('ndtc.orders.archive');
 //
 

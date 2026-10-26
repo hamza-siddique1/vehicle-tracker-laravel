@@ -131,7 +131,7 @@
 
             @endif
 
-            @if ($role != 'viewer')
+            @if (! in_array($role, ['viewer', 'ndtc_manager']))
                 <li class="sidebar-item {{ request()->is('vehicles/create') ? 'active' : '' }}">
                     <a class="sidebar-link" href="{{ route('vehicles.index', ['create' => 'new']) }}">
                         <i class="align-middle" data-feather="plus-square"></i>
@@ -153,6 +153,9 @@
                     </a>
                 </li>
 
+            @endif
+
+            @if (in_array($role, ['admin', 'ndtc_manager']))
                 <li class="sidebar-item {{ request()->is('ndtc/*') ? 'active' : '' }}">
                     <a class="sidebar-link" href="/ndtc/orders">
                         <i class="align-middle" data-feather="file-text"></i>

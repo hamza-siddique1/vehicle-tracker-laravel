@@ -79,6 +79,8 @@
                                         <span class="badge badge-primary">Vehicle Manager</span>
                                     @elseif($user->role == 'yard_manager')
                                         <span class="badge badge-info">Yard Manager</span>
+                                    @elseif($user->role == 'ndtc_manager')
+                                        <span class="badge badge-secondary">NDTC Manager</span>
                                     @elseif($user->role == 'viewer')
                                         <span class="badge badge-warning">Viewer</span>
                                     @endif
