@@ -218,9 +218,13 @@
 
                                     {{-- Actions --}}
                                     <td class="text-right" style="white-space:nowrap">
+                                        <a href="{{ route('vehicles.show', $order->vehicle_id) }}"
+                                           class="btn btn-sm btn-outline-primary btn-xs">
+                                            <i class="fas fa-eye"></i> View Vehicle
+                                        </a>
                                         <a href="{{ route('ndtc.orders.show', $order) }}"
                                            class="btn btn-sm btn-outline-primary btn-xs">
-                                            <i class="fas fa-eye"></i> View
+                                            <i class="fas fa-eye"></i> View Order
                                         </a>
                                         @if($order->canBeFinalized())
                                             <form action="{{ route('ndtc.orders.finalize', $order) }}"

@@ -16,6 +16,11 @@ class VehicleNote extends Model
         'note'
     ];
 
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
     protected static function booted()
     {
         static::created(function () {

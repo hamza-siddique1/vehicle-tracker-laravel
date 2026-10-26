@@ -6,14 +6,15 @@ use App\Models\CSVHeader;
 use App\Models\Vehicle;
 use App\Models\VehicleMetas;
 use App\Models\VehicleNote;
+use Campo\UserAgent;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Http;
-use Campo\UserAgent;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Session;
 
 class VehicleController extends Controller
 {
@@ -22,6 +23,12 @@ class VehicleController extends Controller
         $this->middleware('vehicle_manager')->only('destroy'); // Vehicle manager and higher roles can delete
         $this->middleware('yard_manager')->only('update'); // Yard manager and higher roles can edit
     }
+
+    private const META_KEYS = [
+        'claim_number', 'status', 'primary_damage', 'keys', 'drivability_rating',
+        'odometer', 'odometer_brand', 'days_in_yard', 'secondary_damage',
+        'sale_title_state', 'sale_title_type', 'sale_price',
+    ];
 
     public function index()
     {
@@ -481,7 +488,6 @@ class VehicleController extends Controller
             if (count($row) < count($requiredColumns)) {
                 continue;
             }
-            
             $hasData = false;
             foreach ($row as $cell) {
                 if (trim($cell) !== '') {
@@ -489,7 +495,6 @@ class VehicleController extends Controller
                     break;
                 }
             }
-            
             if (!$hasData) {
                 continue; // Skip completely empty rows
             }
@@ -509,7 +514,6 @@ class VehicleController extends Controller
 
             $vin = trim($row[18]);
             $vin = preg_replace('/\s+/', '', $vin);
-        
             $vehicle = null;
 
             if ($vin !== "" && in_array($vin, $vehicles_vins)) {
@@ -539,7 +543,6 @@ class VehicleController extends Controller
             }
 
             $updated_vehicles++;
-                
             VehicleMetas::updateOrCreate(
                 ['vehicle_id' => $vehicle->id, 'meta_key' => 'sale_date'],
                 [
@@ -550,7 +553,7 @@ class VehicleController extends Controller
             VehicleMetas::updateOrCreate(
                 ['vehicle_id' => $vehicle->id, 'meta_key' => 'sale_price'],
                 [
-                    'meta_value' => $row[$positions[$requiredColumns['sale_price']]] == "" ? 0 : $row[$positions[$requiredColumns['sale_price']]], 
+                    'meta_value' => $row[$positions[$requiredColumns['sale_price']]] == "" ? 0 : $row[$positions[$requiredColumns['sale_price']]],
                 ]
             );
 
@@ -568,6 +571,40 @@ class VehicleController extends Controller
         return view('pages.vehicle.sold.upload')->with('vehicles_not_found', $vehicles_not_found);
     }
 
+    public function show(Vehicle $vehicle)
+    {
+        $metas = VehicleMetas::where('vehicle_id', $vehicle->id)->pluck('meta_value', 'meta_key');
+
+        $orderedMetas = collect(self::META_KEYS)->mapWithKeys(fn ($k) => [$k => $metas[$k] ?? '']);
+
+        $distinctMeta = fn ($key) => VehicleMetas::where('meta_key', $key)
+            ->whereNotNull('meta_value')
+            ->where('meta_value', '!=', '')
+            ->distinct()
+            ->orderBy('meta_value')
+            ->pluck('meta_value');
+
+        $options = [
+            'location' => Vehicle::whereNotNull('location')->where('location', '!=', '')
+                ->distinct()->orderBy('location')->pluck('location'),
+            'status'             => Vehicle::STATUSES,
+            'primary_damage'     => $distinctMeta('primary_damage'),
+            'drivability_rating' => $distinctMeta('drivability_rating'),
+            'keys'               => ['YES', 'NO'],
+        ];
+
+        $vehicleData = Arr::except($vehicle->toArray(), ['days_in_yard', 'updated_at', 'notes']);
+
+        $notes = $vehicle->notes()->with('user')->latest()->get();
+
+        return view('pages.vehicle.show', [
+            'vehicle'     => $vehicle,
+            'vehicleData' => $vehicleData,
+            'metas'       => $orderedMetas,
+            'options'     => $options,
+            'notes'       => $notes,
+        ]);
+    }
 
     public function edit(Vehicle $vehicle)
     {
@@ -608,6 +645,10 @@ class VehicleController extends Controller
 
         // If the VIN exists and it doesn't belong to the current vehicle, show an error
         if ($existingVehicle && $existingVehicle->id !== $vehicle->id) {
+            if (! $request->expectsJson()) {
+                return back()->withInput()->withErrors(['vin' => 'Vehicle with this VIN already exists']);
+            }
+
             return response()->json(['message' => 'Vehicle with this VIN already exists', 'status' => 'error']);
         }
 
@@ -660,23 +701,37 @@ class VehicleController extends Controller
                 );
             }
 
-            foreach ($request->notes as $note) {
-
-                if ($note == null) {
+            foreach ((array) $request->input('notes', []) as $noteId => $text) {
+                $text = trim((string) $text);
+                if ($text === '') {
                     continue;
                 }
 
-                VehicleNote::updateOrCreate(
-                    ['vehicle_id' => $vehicle->id, 'user_id' => Auth::id()],
-                    [
-                        'note' => $note,
-                    ]
-                );
+                VehicleNote::where('id', $noteId)
+                    ->where('vehicle_id', $vehicle->id)
+                    ->where('user_id', Auth::id())
+                    ->update(['note' => $text]);
+            }
 
+            $newNote = trim((string) $request->input('new_note', ''));
+            if ($newNote !== '') {
+                VehicleNote::create([
+                    'vehicle_id' => $vehicle->id,
+                    'user_id' => Auth::id(),
+                    'note' => $newNote,
+                ]);
+            }
+
+            if (! $request->expectsJson()) {
+                return redirect()->route('vehicles.show', $vehicle)->with('success', 'Vehicle updated successfully');
             }
 
             return response()->json(['message' => 'Vehicle updated successfully', 'status' => 'success']);
         } catch (\Exception $e) {
+            if (! $request->expectsJson()) {
+                return back()->withInput()->withErrors(['update' => $e->getMessage()]);
+            }
+
             return response()->json(['message' => $e->getMessage(), 'status' => 'error']);
         }
 

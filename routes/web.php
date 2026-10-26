@@ -99,6 +99,8 @@ Route::group(['middleware' => ['auth']], function () {
     //Render modal for vehicle details
     Route::get('vehicles/{vehicle}/html', [DatatableController::class, 'getVehicleDetails'])->name('vehicle.detail.html');
 
+    Route::get('/vehicles/{vehicle}', [VehicleController::class, 'show'])->whereNumber('vehicle')->name('vehicles.show');
+    Route::put('/vehicles/{vehicle}', [VehicleController::class, 'update'])->whereNumber('vehicle')->name('vehicles.update');
     Route::impersonate();
 
     Route::group(
@@ -147,7 +149,7 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('vehicle/location/{location}', [LocationsController::class, 'add_new_location'])->name('location.add');
 
         Route::delete('vehicles/delete-multiple', [VehicleController::class, 'delete_multiple_vehicles'])->name('vehicles.delete-multiple');
-        Route::resource('vehicles', VehicleController::class)->except('index');
+        Route::resource('vehicles', VehicleController::class)->except(['index', 'show', 'update']);
         Route::resource('locations', LocationsController::class);
 
         Route::get('/vinocr/form', [VinOcrController::class, 'showForm'])->name('vinocr.showform');

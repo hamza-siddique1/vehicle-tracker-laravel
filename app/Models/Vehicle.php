@@ -63,6 +63,11 @@ class Vehicle extends Model
         return $this->hasMany(VehicleMetas::class);
     }
 
+    public function notes()
+    {
+        return $this->hasMany(VehicleNote::class);
+    }
+
     public function invoice_amount()
     {
         return $this->hasOne(VehicleMetas::class)
