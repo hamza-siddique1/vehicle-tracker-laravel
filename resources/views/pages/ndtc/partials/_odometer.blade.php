@@ -40,7 +40,7 @@
                     <option value="NOT_ACTUAL" {{ $odoCondition == 'NOT_ACTUAL' ? 'selected' : '' }}>NOT_ACTUAL — Exceeds limits</option>
                     <option value="EXEMPT" {{ $odoCondition == 'EXEMPT' ? 'selected' : '' }}>EXEMPT — Vehicle is exempt</option>
                     <option value="EXCEEDS_MECHANICAL_LIMIT" {{ $odoCondition == 'EXCEEDS_MECHANICAL_LIMIT' ? 'selected' : '' }}>EXCEEDS_MECHANICAL_LIMIT</option>
-                    <option value="NO_ODOMETER" {{ $odoCondition == 'NO_ODOMETER' ? 'selected' : '' }}>NO_ODOMETER — No odometer</option>
+                    <option value="NO_ODOMETER" {{ $odoCondition == 'NO_ODOMETER' ? 'selected' : '' }}>NO_ODOMETER — Missing</option>
                 </select>
                 @error('odometer_condition')
                     <div class="invalid-feedback">{{ $message }}</div>

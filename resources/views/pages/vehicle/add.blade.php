@@ -75,6 +75,9 @@
                     @if(session('warning'))
                         <x-alert type="warning">{{ session('warning') }}</x-alert>
                     @endif
+                    @if($errors->any())
+                        <x-alert type="danger">{{ $errors->first() }}</x-alert>
+                    @endif
 
                     <form method="post" action="{{ route('vehicles.store') }}" enctype="multipart/form-data">
                         @csrf
@@ -87,6 +90,7 @@
                                         class="form-control form-control-lg"
                                         type="text"
                                         name="vin"
+                                        value="{{ old('vin') }}"
                                         placeholder="Enter VIN"
                                     />
                                 </div>

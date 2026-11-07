@@ -15,6 +15,7 @@ use App\Services\Ndtc\NdtcDescriptionParser;
 use App\Services\Ndtc\NdtcPayloadBuilder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Validation\Rule;
 
 class NdtcOrderController extends Controller
 {
@@ -348,13 +349,28 @@ class NdtcOrderController extends Controller
     {
         $request->validate([
             'document'         => ['required', 'file', 'max:20480', 'mimes:pdf,jpeg,png'],
-            'document_content' => ['required', 'string'],
+            'document_content' => ['required', 'string', Rule::in(NdtcOrderDocument::CONTENT_TYPES)],
         ]);
 
-        // if ($order->status !== NdtcOrder::STATUS_READY_FOR_DOCUMENTS
-        //     && $order->status !== NdtcOrder::STATUS_READY_TO_FINALIZE) {
-        //     return back()->with('error', 'Documents can only be uploaded when order is ready for documents.');
-        // }
+        // NDTC rejects documents until it has sent Ready For Documents
+        if (!$order->canAcceptDocuments()) {
+            return back()->with('error', 'Documents can only be uploaded once NDTC has confirmed the order is ready for documents.');
+        }
+
+        // respect the per-type maximum (e.g. one Title Front, up to three POAs)
+        $content = $request->input('document_content');
+        $max     = NdtcOrderDocument::MAX_PER_ORDER[$content] ?? null;
+
+        if ($max !== null) {
+            $existing = $order->documents()
+                ->where('document_content', $content)
+                ->whereNotIn('status', [NdtcOrderDocument::STATUS_FAILED, NdtcOrderDocument::STATUS_REPLACED])
+                ->count();
+
+            if ($existing >= $max) {
+                return back()->with('error', "This order already has the maximum of {$max} " . str_replace('_', ' ', strtolower($content)) . " document(s). Replace or delete the existing one first.");
+            }
+        }
 
         // Store file temporarily
         $file        = $request->file('document');
@@ -384,6 +400,10 @@ class NdtcOrderController extends Controller
     {
         if ($document->is_system_generated) {
             return back()->with('error', 'System generated documents cannot be replaced.');
+        }
+
+        if (!$order->canAcceptDocuments()) {
+            return back()->with('error', 'Documents can only be replaced once NDTC has confirmed the order is ready for documents.');
         }
 
         $request->validate([
@@ -427,6 +447,15 @@ class NdtcOrderController extends Controller
     {
         if ($document->ndtc_order_id !== $order->id) {
             abort(404);
+        }
+
+        // system generated documents (e.g. the Clearinghouse title application) must stay
+        if ($document->is_system_generated) {
+            return back()->with('error', 'System generated documents cannot be deleted.');
+        }
+
+        if (!$order->canAcceptDocuments()) {
+            return back()->with('error', 'Documents can only be deleted while the order is still open for changes.');
         }
 
         // Delete from NDTC first, if it was ever actually uploaded there

@@ -66,7 +66,7 @@ class NdtcOrder extends Model
     const STATUS_APPROVED            = 'APPROVED';
     const STATUS_REJECTED            = 'REJECTED';
     const STATUS_AGING               = 'AGING';
-    const STATUS_CANCELLED           = 'CANCELED';
+    const STATUS_CANCELLED           = 'CANCELLED';
     const STATUS_TITLE_TERMINATED    = 'TITLE_TERMINATED';
     const STATUS_NOT_FOUND           = 'NOT_FOUND';
 
@@ -164,6 +164,17 @@ class NdtcOrder extends Model
             self::STATUS_MANUAL_REVIEW,
             self::STATUS_ON_HOLD,
         ]);
+    }
+
+    // Documents may only be created while the order is in the client's hands:
+    // after Ready For Documents / Ready To Finalize, or after a rejection.
+    public function canAcceptDocuments(): bool
+    {
+        return in_array($this->status, [
+            self::STATUS_READY_FOR_DOCUMENTS,
+            self::STATUS_READY_TO_FINALIZE,
+            self::STATUS_REJECTED,
+        ], true);
     }
 
     public function canBeResubmitted(): bool

@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Validation\Rule;
 
 class VehicleController extends Controller
 {
@@ -95,6 +96,15 @@ class VehicleController extends Controller
 
     public function store(Request $request)
     {
+        // same cleaning insert_in_db() applies, so the uniqueness check sees the stored value
+        $request->merge(['vin' => preg_replace('/\s+/', '', trim((string) $request->vin))]);
+
+        $request->validate([
+            'vin' => ['required', 'string', 'max:17', Rule::unique('vehicles', 'vin')],
+        ], [
+            'vin.unique' => 'A vehicle with this VIN already exists.',
+        ]);
+
         $vehicle = $this->insert_in_db($request);
 
         return redirect()->route('vehicles.edit', $vehicle->id);
@@ -593,7 +603,7 @@ class VehicleController extends Controller
             'keys'               => ['YES', 'NO'],
         ];
 
-        $vehicleData = Arr::except($vehicle->toArray(), ['days_in_yard', 'updated_at', 'notes']);
+        $vehicleData = Arr::except($vehicle->toArray(), ['days_in_yard', 'updated_at', 'notes', 'deleted_at']);
 
         $notes = $vehicle->notes()->with('user')->latest()->get();
 

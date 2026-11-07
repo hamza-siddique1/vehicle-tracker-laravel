@@ -19,21 +19,18 @@ class SyncOrderFromChamp
             throw new \Exception('Order has not been submitted to NDTC yet.');
         }
 
-        $response = $this->api->getOrder($order->ndtc_order_id);
-        $mappedStatus = $this->mapOrderStatusToAppStatus($response['orderStatus'] ?? $order->ndtc_status);
-        $order->applyStatusIfAdvanced($mappedStatus);
+        $response   = $this->api->getOrder($order->ndtc_order_id);
+        $ndtcStatus = $response['orderStatus'] ?? $order->ndtc_status;
 
-        $updates = [
-            'ndtc_status'     => $response['orderStatus'] ?? $order->ndtc_status,
-            'champ_snapshot'  => $response,
-            'last_synced_at'  => now(),
-        ];
-
-        if ($response['orderStatus'] === 'MANUAL_REVIEW_REQUIRED') {
-            $updates['status'] = 'MANUAL_REVIEW_REQUIRED';
+        if ($ndtcStatus) {
+            $order->applyStatusIfAdvanced($this->mapOrderStatusToAppStatus($ndtcStatus));
         }
 
-        $order->update($updates);
+        $order->update([
+            'ndtc_status'     => $ndtcStatus,
+            'champ_snapshot'  => $response,
+            'last_synced_at'  => now(),
+        ]);
 
         $remoteDocs = collect($response['evidenceDetail']['attachedDocuments'] ?? []);
         $remoteIds  = $remoteDocs->pluck('id')->filter()->all();
