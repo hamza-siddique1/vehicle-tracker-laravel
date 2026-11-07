@@ -29,6 +29,10 @@ class VehicleController extends Controller
         'claim_number', 'status', 'primary_damage', 'keys', 'drivability_rating',
         'odometer', 'odometer_brand', 'days_in_yard', 'secondary_damage',
         'sale_title_state', 'sale_title_type', 'sale_price',
+        'arrival_date', 'left_yard_date',
+        'prev_owner_name', 'prev_owner_phone', 'prev_owner_street', 'prev_owner_city',
+        'prev_owner_state', 'prev_owner_zip', 'prev_owner_country',
+        'buyer_name', 'buyer_address', 'buyer_phone', 'buyer_email',
     ];
 
     public function index()
@@ -587,6 +591,16 @@ class VehicleController extends Controller
 
         $orderedMetas = collect(self::META_KEYS)->mapWithKeys(fn ($k) => [$k => $metas[$k] ?? '']);
 
+        // split into sections for the view
+        $isOwner = fn ($v, $k) => str_starts_with($k, 'prev_owner_');
+        $isBuyer = fn ($v, $k) => str_starts_with($k, 'buyer_');
+
+        $metaGroups = [
+            'Auction / Title details'      => $orderedMetas->reject(fn ($v, $k) => $isOwner($v, $k) || $isBuyer($v, $k)),
+            'Previous Owner Information'   => $orderedMetas->filter($isOwner),
+            'Buyer Information'            => $orderedMetas->filter($isBuyer),
+        ];
+
         $distinctMeta = fn ($key) => VehicleMetas::where('meta_key', $key)
             ->whereNotNull('meta_value')
             ->where('meta_value', '!=', '')
@@ -614,7 +628,7 @@ class VehicleController extends Controller
             'ndtcOrder'   => $ndtcOrder,
             'vehicle'     => $vehicle,
             'vehicleData' => $vehicleData,
-            'metas'       => $orderedMetas,
+            'metaGroups'  => $metaGroups,
             'options'     => $options,
             'notes'       => $notes,
         ]);
@@ -651,6 +665,9 @@ class VehicleController extends Controller
             'vin' => 'required',
             'location' => 'required',
             'description' => 'required',
+            'arrival_date'   => 'nullable|date',
+            'left_yard_date' => 'nullable|date',
+            'buyer_email'    => 'nullable|email',
         ]);
 
 
@@ -712,6 +729,24 @@ class VehicleController extends Controller
                     [
                         'meta_value' => $request->$key,
                     ]
+                );
+            }
+
+            $partyAndDateKeys = [
+                'arrival_date', 'left_yard_date',
+                'prev_owner_name', 'prev_owner_phone', 'prev_owner_street', 'prev_owner_city',
+                'prev_owner_state', 'prev_owner_zip', 'prev_owner_country',
+                'buyer_name', 'buyer_address', 'buyer_phone', 'buyer_email',
+            ];
+
+            foreach ($partyAndDateKeys as $key) {
+                if (! $request->has($key)) {
+                    continue;
+                }
+
+                VehicleMetas::updateOrCreate(
+                    ['vehicle_id' => $vehicle->id, 'meta_key' => $key],
+                    ['meta_value' => (string) $request->input($key)]
                 );
             }
 

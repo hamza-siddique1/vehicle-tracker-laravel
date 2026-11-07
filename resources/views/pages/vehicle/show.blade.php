@@ -51,6 +51,20 @@
         'sale_title_state'   => 'Sale Title State',
         'sale_title_type'    => 'Sale Title Type',
         'sale_price'         => 'Sale Price',
+
+        'arrival_date'     => 'Arrival Date',
+        'left_yard_date'   => 'Left Yard / Sent to Auction Date',
+        'prev_owner_name'  => 'Name',
+        'prev_owner_phone' => 'Phone',
+        'prev_owner_street'=> 'Street Address',
+        'prev_owner_city'  => 'City',
+        'prev_owner_state' => 'State',
+        'prev_owner_zip'   => 'ZIP',
+        'prev_owner_country'=> 'Country',
+        'buyer_name'       => 'Buyer Name',
+        'buyer_address'    => 'Address',
+        'buyer_phone'      => 'Phone',
+        'buyer_email'      => 'Email',
     ];
     $label = fn ($k) => $labels[$k] ?? ucwords(str_replace('_', ' ', $k));
 @endphp
@@ -112,34 +126,37 @@
         </div>
 
         {{-- ================= AUCTION / TITLE ================= --}}
-        <div class="card mb-3">
-            <div class="card-header">Auction / Title details</div>
-            <div class="card-body">
-                <div class="row gx-3 gy-4">
-                    @foreach ($metas as $key => $value)
-                        <div class="col-md-6 col-lg-4">
-                            <label for="f_{{ $key }}" class="form-label small text-muted mb-1">{{ $label($key) }}</label>
+        @foreach ($metaGroups as $title => $metas)
+            <div class="card mb-3">
+                <div class="card-header">{{ $title }}</div>
+                <div class="card-body">
+                    <div class="row gx-3 gy-4">
+                        @foreach ($metas as $key => $value)
+                            <div class="col-md-6 col-lg-4">
+                                <label for="f_{{ $key }}" class="form-label small text-muted mb-1">{{ $label($key) }}</label>
 
-                            @if (isset($options[$key]))
-                                <select id="f_{{ $key }}" name="{{ $key }}" class="form-select select2">
-                                    <option value="">Select {{ $label($key) }}</option>
-                                    @foreach ($options[$key] as $choice)
-                                        <option value="{{ $choice }}" @selected($choice == $value)>{{ $choice }}</option>
-                                    @endforeach
-                                </select>
-                            @else
-                                <input id="f_{{ $key }}"
-                                       type="{{ $key === 'odometer' ? 'number' : 'text' }}"
-                                       @if ($key === 'odometer') step="any" @endif
-                                       name="{{ $key }}"
-                                       value="{{ $value }}"
-                                       class="form-control">
-                            @endif
-                        </div>
-                    @endforeach
+                                @if (isset($options[$key]))
+                                    <select id="f_{{ $key }}" name="{{ $key }}" class="form-select select2">
+                                        <option value="">Select {{ $label($key) }}</option>
+                                        @foreach ($options[$key] as $choice)
+                                            <option value="{{ $choice }}" @selected($choice == $value)>{{ $choice }}</option>
+                                        @endforeach
+                                    </select>
+                                @else
+                                    <input id="f_{{ $key }}"
+                                        type="{{ $key === 'odometer' ? 'number' : 'text' }}"
+                                        @if ($key === 'odometer') step="any" @endif
+                                        name="{{ $key }}"
+                                        value="{{ $value }}"
+                                        class="form-control {{ in_array($key, ['arrival_date', 'left_yard_date']) ? 'daterange' : '' }}">
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
                 </div>
             </div>
-        </div>
+        @endforeach
+
 
         {{-- ================= NOTES ================= --}}
         <div class="card mb-3">
