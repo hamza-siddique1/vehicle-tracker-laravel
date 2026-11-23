@@ -29,10 +29,13 @@ class VehicleController extends Controller
         'claim_number', 'status', 'primary_damage', 'keys', 'drivability_rating',
         'odometer', 'odometer_brand', 'days_in_yard', 'secondary_damage',
         'sale_title_state', 'sale_title_type', 'sale_price',
+
         'arrival_date', 'left_yard_date',
         'prev_owner_name', 'prev_owner_phone', 'prev_owner_street', 'prev_owner_city',
         'prev_owner_state', 'prev_owner_zip', 'prev_owner_country',
         'buyer_name', 'buyer_address', 'buyer_phone', 'buyer_email',
+
+        'title_received_date', 'reassignment_number', 'title_sent_to_auction_date',
     ];
 
     public function index()
@@ -591,14 +594,19 @@ class VehicleController extends Controller
 
         $orderedMetas = collect(self::META_KEYS)->mapWithKeys(fn ($k) => [$k => $metas[$k] ?? '']);
 
-        // split into sections for the view
+        $titleKeys = ['title_received_date', 'reassignment_number', 'title_sent_to_auction_date'];
+
         $isOwner = fn ($v, $k) => str_starts_with($k, 'prev_owner_');
         $isBuyer = fn ($v, $k) => str_starts_with($k, 'buyer_');
+        $isTitle = fn ($v, $k) => in_array($k, $titleKeys, true);
 
         $metaGroups = [
-            'Auction / Title details'      => $orderedMetas->reject(fn ($v, $k) => $isOwner($v, $k) || $isBuyer($v, $k)),
-            'Previous Owner Information'   => $orderedMetas->filter($isOwner),
-            'Buyer Information'            => $orderedMetas->filter($isBuyer),
+            'Auction / Title details'    => $orderedMetas->reject(
+                fn ($v, $k) => $isOwner($v, $k) || $isBuyer($v, $k) || $isTitle($v, $k)
+            ),
+            'Title Information'          => $orderedMetas->filter($isTitle),
+            'Previous Owner Information' => $orderedMetas->filter($isOwner),
+            'Buyer Information'          => $orderedMetas->filter($isBuyer),
         ];
 
         $distinctMeta = fn ($key) => VehicleMetas::where('meta_key', $key)
@@ -668,6 +676,9 @@ class VehicleController extends Controller
             'arrival_date'   => 'nullable|date',
             'left_yard_date' => 'nullable|date',
             'buyer_email'    => 'nullable|email',
+
+            'title_received_date'        => 'nullable|date',
+            'title_sent_to_auction_date' => 'nullable|date',
         ]);
 
 
@@ -734,6 +745,7 @@ class VehicleController extends Controller
 
             $partyAndDateKeys = [
                 'arrival_date', 'left_yard_date',
+                'title_received_date', 'reassignment_number', 'title_sent_to_auction_date',
                 'prev_owner_name', 'prev_owner_phone', 'prev_owner_street', 'prev_owner_city',
                 'prev_owner_state', 'prev_owner_zip', 'prev_owner_country',
                 'buyer_name', 'buyer_address', 'buyer_phone', 'buyer_email',

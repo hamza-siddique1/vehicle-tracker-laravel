@@ -65,6 +65,10 @@
         'buyer_address'    => 'Address',
         'buyer_phone'      => 'Phone',
         'buyer_email'      => 'Email',
+
+        'title_received_date'        => 'Title Received Date',
+        'reassignment_number'        => 'Reassignment Number',
+        'title_sent_to_auction_date' => 'Title Sent to Auction Date',
     ];
     $label = fn ($k) => $labels[$k] ?? ucwords(str_replace('_', ' ', $k));
 @endphp
@@ -148,7 +152,7 @@
                                         @if ($key === 'odometer') step="any" @endif
                                         name="{{ $key }}"
                                         value="{{ $value }}"
-                                        class="form-control {{ in_array($key, ['arrival_date', 'left_yard_date']) ? 'daterange' : '' }}">
+                                        class="form-control {{ in_array($key, ['arrival_date', 'left_yard_date', 'title_received_date', 'title_sent_to_auction_date']) ? 'daterange-optional' : '' }}">
                                 @endif
                             </div>
                         @endforeach
@@ -197,6 +201,32 @@
             autoUpdateInput: true,
             locale: { format: 'YYYY-MM-DD' }
         });
+
+        $('#vehicle-form .daterange-optional').each(function () {
+    var $el = $(this);
+    var current = moment($el.val(), ['YYYY-MM-DD', 'DD-MMM-YYYY', 'DD.MM.YYYY'], true);
+
+    var opts = {
+        singleDatePicker: true,
+        autoUpdateInput: false,
+        locale: { format: 'YYYY-MM-DD', cancelLabel: 'Clear' }
+    };
+
+    if (current.isValid()) {
+        opts.startDate = current;
+        $el.val(current.format('YYYY-MM-DD'));   // normalise so it saves in one format
+    }
+
+    $el.daterangepicker(opts);
+
+    $el.on('apply.daterangepicker', function (ev, picker) {
+        $(this).val(picker.startDate.format('YYYY-MM-DD'));
+    });
+
+    $el.on('cancel.daterangepicker', function () {
+        $(this).val('');
+    });
+});
     });
 </script>
 

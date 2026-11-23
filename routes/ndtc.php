@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Ndtc\NdtcOrderController;
 use App\Http\Controllers\Ndtc\NdtcWebhookController;
+use App\Http\Controllers\NdtcDisposingEntityController as EntityController;
 use Illuminate\Support\Facades\Route;
 
 // ── Authenticated NDTC routes ─────────────────────────────────
@@ -66,3 +67,10 @@ Route::delete('orders/{order}/archive', [NdtcOrderController::class, 'archive'])
      Route::post('/dev/ndtc/webhook-simulator', [\App\Http\Controllers\Dev\NdtcWebhookSimulatorController::class, 'send'])
           ->name('dev.ndtc.webhook-simulator.send');
      }
+
+Route::middleware('auth')->prefix('ndtc/disposing-entities')->name('ndtc.entities.')->group(function () {
+    Route::get('search', [EntityController::class, 'search'])->name('search');
+    Route::get('/', [EntityController::class, 'index'])->name('index');
+    Route::get('{entity}/edit', [EntityController::class, 'edit'])->name('edit');
+    Route::put('{entity}', [EntityController::class, 'update'])->name('update');
+});
