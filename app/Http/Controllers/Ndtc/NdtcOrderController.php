@@ -344,6 +344,13 @@ class NdtcOrderController extends Controller
             ->with('success', 'Order cancelled successfully.');
     }
 
+    // Send the user back to the order page with the Documents tab open,
+    // so several documents can be uploaded one after another.
+    private function toDocuments(NdtcOrder $order)
+    {
+        return redirect()->to(route('ndtc.orders.show', $order) . '#tab-documents');
+    }
+
     // ── DOCUMENT UPLOAD ───────────────────────────────────────────
     public function storeDocument(Request $request, NdtcOrder $order)
     {
@@ -354,7 +361,7 @@ class NdtcOrderController extends Controller
 
         // NDTC rejects documents until it has sent Ready For Documents
         if (!$order->canAcceptDocuments()) {
-            return back()->with('error', 'Documents can only be uploaded once NDTC has confirmed the order is ready for documents.');
+            return $this->toDocuments($order)->with('error', 'Documents can only be uploaded once NDTC has confirmed the order is ready for documents.');
         }
 
         // respect the per-type maximum (e.g. one Title Front, up to three POAs)
@@ -368,7 +375,7 @@ class NdtcOrderController extends Controller
                 ->count();
 
             if ($existing >= $max) {
-                return back()->with('error', "This order already has the maximum of {$max} " . str_replace('_', ' ', strtolower($content)) . " document(s). Replace or delete the existing one first.");
+                return $this->toDocuments($order)->with('error', "This order already has the maximum of {$max} " . str_replace('_', ' ', strtolower($content)) . " document(s). Replace or delete the existing one first.");
             }
         }
 
@@ -392,18 +399,18 @@ class NdtcOrderController extends Controller
         // Dispatch upload job
         UploadNdtcDocuments::dispatch($order, $document, storage_path('app/' . $tempPath));
 
-        return back()->with('success', 'Document queued for upload. It will appear shortly.');
+        return $this->toDocuments($order)->with('success', 'Document queued for upload. It will appear shortly.');
     }
 
     // ── DOCUMENT REPLACE ──────────────────────────────────────────
     public function replaceDocument(Request $request, NdtcOrder $order, NdtcOrderDocument $document)
     {
         if ($document->is_system_generated) {
-            return back()->with('error', 'System generated documents cannot be replaced.');
+            return $this->toDocuments($order)->with('error', 'System generated documents cannot be replaced.');
         }
 
         if (!$order->canAcceptDocuments()) {
-            return back()->with('error', 'Documents can only be replaced once NDTC has confirmed the order is ready for documents.');
+            return $this->toDocuments($order)->with('error', 'Documents can only be replaced once NDTC has confirmed the order is ready for documents.');
         }
 
         $request->validate([
@@ -415,7 +422,7 @@ class NdtcOrderController extends Controller
             try {
                 $this->api->deleteDocument($order->ndtc_order_id, $document->ndtc_document_id);
             } catch (\Exception $e) {
-                return back()->with('error', 'Failed to remove old document: ' . $e->getMessage());
+                return $this->toDocuments($order)->with('error', 'Failed to remove old document: ' . $e->getMessage());
             }
         }
 
@@ -440,7 +447,7 @@ class NdtcOrderController extends Controller
 
         UploadNdtcDocuments::dispatch($order, $newDocument, storage_path('app/' . $tempPath));
 
-        return back()->with('success', 'Document replaced and queued for upload.');
+        return $this->toDocuments($order)->with('success', 'Document replaced and queued for upload.');
     }
 
     public function deleteDocument(NdtcOrder $order, NdtcOrderDocument $document)
@@ -451,11 +458,11 @@ class NdtcOrderController extends Controller
 
         // system generated documents (e.g. the Clearinghouse title application) must stay
         if ($document->is_system_generated) {
-            return back()->with('error', 'System generated documents cannot be deleted.');
+            return $this->toDocuments($order)->with('error', 'System generated documents cannot be deleted.');
         }
 
         if (!$order->canAcceptDocuments()) {
-            return back()->with('error', 'Documents can only be deleted while the order is still open for changes.');
+            return $this->toDocuments($order)->with('error', 'Documents can only be deleted while the order is still open for changes.');
         }
 
         // Delete from NDTC first, if it was ever actually uploaded there
@@ -463,13 +470,13 @@ class NdtcOrderController extends Controller
             try {
                 $this->api->deleteDocument($order->ndtc_order_id, $document->ndtc_document_id);
             } catch (\Exception $e) {
-                return back()->with('error', 'Failed to delete document from NDTC: ' . $e->getMessage());
+                return $this->toDocuments($order)->with('error', 'Failed to delete document from NDTC: ' . $e->getMessage());
             }
         }
 
         $document->delete(); // soft delete locally
 
-        return back()->with('success', 'Document deleted successfully.');
+        return $this->toDocuments($order)->with('success', 'Document deleted successfully.');
     }
 
     // ── DOCUMENT VIEW ─────────────────────────────────────────────

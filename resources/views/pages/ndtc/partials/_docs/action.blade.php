@@ -31,6 +31,12 @@
                 <span class="text-muted">System generated</span>
             @elseif($doc->uploaded_at)
                 <span>Uploaded {{ $doc->uploaded_at->format('M d, Y') }}</span>
+                @if($doc->uploaded_at->gt(now()->subMinutes(2)))
+                    {{-- freshly uploaded: bounces a few times, then stays as a plain tag --}}
+                    <span class="badge badge-success doc-just-uploaded">
+                        <i class="fas fa-check mr-1"></i>Just uploaded · {{ $doc->uploaded_at->diffForHumans() }}
+                    </span>
+                @endif
             @endif
 
             @if(!$isFailed)

@@ -4,6 +4,10 @@
 
 @section('styles')
     <style>
+        /* ── Freshly uploaded document tag ───────────── */
+        @keyframes doc-bounce{0%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}60%{transform:translateY(0)}80%{transform:translateY(-3px)}}
+        .doc-just-uploaded{font-size:.65rem;animation:doc-bounce .8s ease 6}
+
         /* ── Order hero ──────────────────────────────── */
         .order-hero{background:#293042;border-radius:.25rem;padding:1rem 1.25rem;margin-bottom:1rem}
         .hero-vin{font-family:"Courier New",monospace;font-size:.72rem;color:rgba(255,255,255,.4);letter-spacing:.08em}
@@ -1236,6 +1240,20 @@
 @section('scripts')
 <script>
 $(document).ready(function () {
+
+    // Re-open the tab named in the URL (e.g. #tab-documents after an upload),
+    // and keep the Documents tab open when an upload form fails validation.
+    var hash = window.location.hash;
+    @if ($errors->any())
+        hash = '#tab-documents';
+    @endif
+    if (hash && $('.nav-tabs a[href="' + hash + '"]').length) {
+        $('.nav-tabs a[href="' + hash + '"]').tab('show');
+    }
+    // keep the hash in sync so a manual refresh stays on the same tab
+    $('.nav-tabs a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+        history.replaceState(null, '', e.target.getAttribute('href'));
+    });
 
     // Wire replace document modal to correct endpoint
     $('#replaceDocModal').on('show.bs.modal', function (e) {
