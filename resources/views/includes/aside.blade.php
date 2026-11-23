@@ -156,13 +156,13 @@
             @endif
 
             @if (in_array($role, ['admin', 'ndtc_manager']))
-                <li class="sidebar-item {{ request()->is('ndtc/*') ? 'active' : '' }}">
+                <li class="sidebar-item {{ request()->is('ndtc/*') && ! request()->is('ndtc/disposing-entities*') ? 'active' : '' }}">
                     <a class="sidebar-link" href="/ndtc/orders">
                         <i class="align-middle" data-feather="file-text"></i>
                         <span class="align-middle">NDTC Orders</span>
                     </a>
                 </li>
-                <li class="sidebar-item {{ request()->is('ndtc/entities*') ? 'active' : '' }}">
+                <li class="sidebar-item {{ request()->is('ndtc/disposing-entities*') ? 'active' : '' }}">
                     <a class="sidebar-link" href="{{ route('ndtc.entities.index') }}">
                         <i class="align-middle" data-feather="file-text"></i>
                         <span class="align-middle">Disposing Entities</span>
