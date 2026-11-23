@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', '' . $vehicle->id)
+
 @section('content')
 
 <style>

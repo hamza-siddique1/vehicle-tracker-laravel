@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Edit Disposing Entity')
+
 @section('content')
 <div class="container-fluid py-3">
     <a href="{{ route('ndtc.entities.index') }}" class="small">&larr; Back</a>
