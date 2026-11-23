@@ -484,11 +484,13 @@
         </a>
     </li>
 
+    @if(auth()->user()->role === 'admin')
     <li class="nav-item">
         <a class="nav-link" href="#tab-debug" data-toggle="tab">
             <i class="fas fa-bug mr-1"></i>Debug
         </a>
     </li>
+    @endif
     @if($isRejected)
         <li class="nav-item">
             <a class="nav-link" href="#tab-rejection" data-toggle="tab">
@@ -1121,6 +1123,7 @@
         </div>
     </div>
 
+    @if(auth()->user()->role === 'admin')
     <div class="tab-pane fade" id="tab-debug">
     <p class="text-muted mb-3 small">
         <i class="fas fa-info-circle mr-1"></i>
@@ -1166,6 +1169,7 @@
         </div>
     @endforelse
 </div>
+    @endif
 
 </div>{{-- /tab-content --}}
 
