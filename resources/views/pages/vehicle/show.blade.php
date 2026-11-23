@@ -94,6 +94,16 @@
         </div>
     </div>
 
+    @if ($errors->any())
+        <div class="alert alert-danger py-3 px-4 mb-3">
+            <ul class="mb-0 pl-3">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     <form id="vehicle-form" method="POST" action="{{ route('vehicles.update', $vehicle) }}">
         @csrf
         @method('PUT')
@@ -151,7 +161,7 @@
                                         type="{{ $key === 'odometer' ? 'number' : 'text' }}"
                                         @if ($key === 'odometer') step="any" @endif
                                         name="{{ $key }}"
-                                        value="{{ $value }}"
+                                        value="{{ old($key, $value) }}"
                                         class="form-control {{ in_array($key, ['arrival_date', 'left_yard_date', 'title_received_date', 'title_sent_to_auction_date']) ? 'daterange-optional' : '' }}">
                                 @endif
                             </div>

@@ -16,6 +16,7 @@ Route::prefix('ndtc')->name('ndtc.')->middleware(['auth', 'ndtc'])->group(functi
     Route::post('orders',                   [NdtcOrderController::class, 'store'])
          ->name('orders.store');
     Route::get('/{order}',            [NdtcOrderController::class, 'show'])
+         ->whereNumber('order')
          ->name('orders.show');
     Route::get('orders/{order}/edit',       [NdtcOrderController::class, 'edit'])
          ->name('orders.edit');
