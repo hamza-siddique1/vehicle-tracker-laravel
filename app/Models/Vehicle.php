@@ -25,6 +25,12 @@ class Vehicle extends Model
         'updated_at',
     ];
 
+    // newest received title first; the first row is the vehicle's current title
+    public function titles()
+    {
+        return $this->hasMany(VehicleTitle::class)->orderByDesc('received_date')->orderByDesc('id');
+    }
+
     protected $casts = [
         'created_at' => 'datetime:Y-m-d',
     ];

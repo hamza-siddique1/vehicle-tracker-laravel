@@ -101,6 +101,8 @@ Route::group(['middleware' => ['auth']], function () {
 
     Route::get('/vehicles/{vehicle}', [VehicleController::class, 'show'])->whereNumber('vehicle')->name('vehicles.show');
     Route::put('/vehicles/{vehicle}', [VehicleController::class, 'update'])->whereNumber('vehicle')->name('vehicles.update');
+    Route::post('/vehicles/{vehicle}/titles', [VehicleController::class, 'addTitle'])->whereNumber('vehicle')->name('vehicles.titles.store');
+    Route::delete('/vehicles/{vehicle}/titles/{title}', [VehicleController::class, 'destroyTitle'])->whereNumber(['vehicle', 'title'])->name('vehicles.titles.destroy');
     Route::impersonate();
 
     Route::group(

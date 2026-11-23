@@ -141,6 +141,7 @@
 
         {{-- ================= AUCTION / TITLE ================= --}}
         @foreach ($metaGroups as $title => $metas)
+            @continue($title === 'Title Information') {{-- replaced by the Title History card below --}}
             <div class="card mb-3">
                 <div class="card-header">{{ $title }}</div>
                 <div class="card-body">
@@ -194,6 +195,91 @@
             </div>
         </div>
     </form>
+
+    {{-- ================= TITLE HISTORY ================= --}}
+    {{-- its own form (outside #vehicle-form) so adding a title never touches the vehicle's other fields --}}
+    <div class="card mb-3" id="title-history">
+        <div class="card-header">Title History</div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-sm table-striped mb-3">
+                    <thead>
+                    <tr>
+                        <th>Title Number</th>
+                        <th>Received</th>
+                        <th>Reassignment #</th>
+                        <th>Sent to Auction</th>
+                        <th>Notes</th>
+                        <th>Added By</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @forelse ($titles as $t)
+                        <tr>
+                            <td>
+                                {{ $t->title_number ?: '—' }}
+                                @if ($loop->first)
+                                    <span class="badge badge-success">Current</span>
+                                @endif
+                            </td>
+                            <td>{{ $t->received_date?->format('d.m.Y') ?? '—' }}</td>
+                            <td>{{ $t->reassignment_number ?: '—' }}</td>
+                            <td>{{ $t->sent_to_auction_date?->format('d.m.Y') ?? '—' }}</td>
+                            <td>{{ $t->notes }}</td>
+                            <td>{{ $t->creator->name ?? '—' }}</td>
+                            <td class="text-right">
+                                @if (auth()->user()->role === 'admin')
+                                    <form method="POST" action="{{ route('vehicles.titles.destroy', [$vehicle, $t]) }}"
+                                          onsubmit="return confirmSubmission(this, 'Remove this title from the history?')"
+                                          style="display: inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button class="btn btn-sm text-danger"><i class="fa fa-trash"></i></button>
+                                    </form>
+                                @endif
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="7" class="text-muted">No titles recorded yet.</td></tr>
+                    @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+            @if (in_array(auth()->user()->role, ['admin', 'ndtc_manager', 'yard_manager', 'vehicle_manager']))
+                <form method="POST" action="{{ route('vehicles.titles.store', $vehicle) }}">
+                    @csrf
+                    <div class="small text-muted mb-2">Add a new title. Earlier titles are kept.</div>
+                    <div class="row gx-3 gy-2">
+                        <div class="col-md-3">
+                            <label class="form-label small text-muted mb-1">Title Number *</label>
+                            <input type="text" name="title_number" value="{{ old('title_number') }}" class="form-control" maxlength="50" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small text-muted mb-1">Received Date *</label>
+                            <input type="date" name="received_date" value="{{ old('received_date') }}" class="form-control" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small text-muted mb-1">Reassignment Number</label>
+                            <input type="text" name="reassignment_number" value="{{ old('reassignment_number') }}" class="form-control">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small text-muted mb-1">Sent to Auction Date</label>
+                            <input type="date" name="sent_to_auction_date" value="{{ old('sent_to_auction_date') }}" class="form-control">
+                        </div>
+                        <div class="col-md-9">
+                            <label class="form-label small text-muted mb-1">Notes</label>
+                            <input type="text" name="notes" value="{{ old('notes') }}" class="form-control" maxlength="1000">
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary btn-block">Add title</button>
+                        </div>
+                    </div>
+                </form>
+            @endif
+        </div>
+    </div>
 </div>
 
 <script>

@@ -22,7 +22,7 @@ class VehicleController extends Controller
     public function __construct()
     {
         $this->middleware('vehicle_manager')->only('destroy'); // Vehicle manager and higher roles can delete
-        $this->middleware('vehicle_editor')->only('update'); // Yard manager and higher roles can edit
+        $this->middleware('vehicle_editor')->only(['update', 'addTitle']); // Yard manager and higher roles can edit
     }
 
     private const META_KEYS = [
@@ -639,7 +639,36 @@ class VehicleController extends Controller
             'metaGroups'  => $metaGroups,
             'options'     => $options,
             'notes'       => $notes,
+            'titles'      => $vehicle->titles()->get(),
         ]);
+    }
+
+    // Title history: every received title is kept as its own row, nothing is overwritten.
+    public function addTitle(Request $request, Vehicle $vehicle)
+    {
+        $data = $request->validate([
+            'title_number'         => 'required|string|max:50',
+            'received_date'        => 'required|date',
+            'reassignment_number'  => 'nullable|string|max:255',
+            'sent_to_auction_date' => 'nullable|date',
+            'notes'                => 'nullable|string|max:1000',
+        ]);
+
+        $vehicle->titles()->create($data + ['created_by' => Auth::id()]);
+
+        return redirect()->to(route('vehicles.show', $vehicle) . '#title-history')
+            ->with('success', 'Title added to the history.');
+    }
+
+    public function destroyTitle(Vehicle $vehicle, \App\Models\VehicleTitle $title)
+    {
+        // only a full admin may remove a title from the history
+        abort_unless(Auth::user()->role === 'admin' && $title->vehicle_id === $vehicle->id, 403);
+
+        $title->delete();
+
+        return redirect()->to(route('vehicles.show', $vehicle) . '#title-history')
+            ->with('success', 'Title removed from the history.');
     }
 
     public function edit(Vehicle $vehicle)
