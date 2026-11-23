@@ -208,6 +208,8 @@ class NdtcOrderController extends Controller
                 ->with('error', 'NDTC did not return an order ID. Please try again.');
         }
 
+        $this->rememberDisposingEntity($request);
+
         // Save locally
         $order = NdtcOrder::create([
             'vehicle_id'          => $request->input('vehicle_id'),
@@ -283,6 +285,8 @@ class NdtcOrderController extends Controller
                 ->with('error', $message);
         }
 
+        $this->rememberDisposingEntity($request);
+
         $order->update([
             'order_payload'      => $payload,
             'status'             => NdtcOrder::STATUS_PROCESSING,
@@ -342,6 +346,31 @@ class NdtcOrderController extends Controller
         return redirect()
             ->route('ndtc.orders.index')
             ->with('success', 'Order cancelled successfully.');
+    }
+
+    // Save the disposing entity typed on the order form so it can be suggested next time.
+    // Same name (case-insensitive) updates the saved details instead of adding a duplicate.
+    private function rememberDisposingEntity(Request $request): void
+    {
+        $name = trim((string) $request->input('disposing_name'));
+
+        if ($name === '') {
+            return;
+        }
+
+        \App\Models\NdtcDisposingEntity::updateOrCreate(
+            ['name' => $name],
+            [
+                'address_line_1' => $request->input('disposing_address1'),
+                'address_line_2' => $request->input('disposing_address2'),
+                'city'           => $request->input('disposing_city'),
+                'state'          => $request->input('disposing_state'),
+                'zip'            => $request->input('disposing_zip'),
+                'county'         => $request->input('disposing_county'),
+                'phone_number'   => $request->input('disposing_phone'),
+                'created_by'     => auth()->id(),
+            ]
+        );
     }
 
     // Send the user back to the order page with the Documents tab open,

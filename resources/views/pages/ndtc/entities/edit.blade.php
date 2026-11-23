@@ -11,7 +11,7 @@
             @foreach ([
                 'name' => 'Entity Name', 'address_line_1' => 'Address Line 1', 'address_line_2' => 'Address Line 2',
                 'city' => 'City', 'state' => 'State (2 letters)', 'zip' => 'ZIP', 'county' => 'County',
-                'phone_number' => 'Phone Number', 'phone_type' => 'Phone Type',
+                'phone_number' => 'Phone Number',
             ] as $field => $label)
                 <div class="col-md-6 col-lg-4">
                     <label class="form-label small text-muted mb-1">{{ $label }}</label>

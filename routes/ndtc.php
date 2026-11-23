@@ -69,9 +69,11 @@ Route::delete('orders/{order}/archive', [NdtcOrderController::class, 'archive'])
           ->name('dev.ndtc.webhook-simulator.send');
      }
 
-Route::middleware('auth')->prefix('ndtc/disposing-entities')->name('ndtc.entities.')->group(function () {
+// Disposing entities: same roles as the rest of NDTC (admin, ndtc_manager); deleting is admin-only (checked in the controller)
+Route::middleware(['auth', 'ndtc'])->prefix('ndtc/disposing-entities')->name('ndtc.entities.')->group(function () {
     Route::get('search', [EntityController::class, 'search'])->name('search');
     Route::get('/', [EntityController::class, 'index'])->name('index');
     Route::get('{entity}/edit', [EntityController::class, 'edit'])->name('edit');
     Route::put('{entity}', [EntityController::class, 'update'])->name('update');
+    Route::delete('{entity}', [EntityController::class, 'destroy'])->name('destroy');
 });

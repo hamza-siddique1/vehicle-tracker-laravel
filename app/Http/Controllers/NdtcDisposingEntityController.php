@@ -7,13 +7,19 @@ use Illuminate\Http\Request;
 
 class NdtcDisposingEntityController extends Controller
 {
-    // autocomplete: any logged-in user who creates orders
+    // autocomplete for the order form (route is limited to admin / ndtc_manager)
+    // ?field=name|address_line_1|city|zip|phone_number&q=...  (field defaults to name)
     public function search(Request $request)
     {
-        $q = str_replace(['%', '_'], ['\%', '\_'], trim((string) $request->query('q')));
+        $field = in_array($request->query('field'), ['name', 'address_line_1', 'city', 'zip', 'phone_number'], true)
+            ? $request->query('field')
+            : 'name';
 
-        return NdtcDisposingEntity::where('name', 'like', "%{$q}%")
-            ->orderByRaw('name like ? desc', ["{$q}%"])
+        $q = str_replace(['%', '_'], ['\\%', '\\_'], trim((string) $request->query('q')));
+
+        return NdtcDisposingEntity::where($field, 'like', "%{$q}%")
+            ->orderByRaw("{$field} like ? desc", ["{$q}%"])
+            ->orderBy($field)
             ->orderBy('name')
             ->limit(10)
             ->get(['name', 'address_line_1', 'address_line_2', 'city', 'state',
@@ -26,7 +32,7 @@ class NdtcDisposingEntityController extends Controller
         $this->authorizeAdmin();
 
         return view('pages.ndtc.entities.index', [
-            'entities' => NdtcDisposingEntity::orderBy('name')->paginate(25),
+            'entities' => NdtcDisposingEntity::orderBy('name')->get(), // DataTables pages and searches in the browser
         ]);
     }
 
@@ -56,6 +62,16 @@ class NdtcDisposingEntityController extends Controller
         $entity->update($data);
 
         return redirect()->route('ndtc.entities.index')->with('success', 'Disposing entity updated');
+    }
+
+    public function destroy(NdtcDisposingEntity $entity)
+    {
+        // only a full admin may delete a saved entity
+        abort_unless(auth()->user()->role === 'admin', 403);
+
+        $entity->delete();
+
+        return redirect()->route('ndtc.entities.index')->with('success', 'Disposing entity deleted');
     }
 
     private function authorizeAdmin(): void

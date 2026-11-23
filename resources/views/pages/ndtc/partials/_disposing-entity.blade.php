@@ -127,16 +127,82 @@
                        value="{{ $val('disposing_phone') }}"
                        placeholder="555-555-5555">
             </div>
-            <div class="form-group col-md-3">
-                <label>Phone Type <span class="badge badge-optional">OPTIONAL</span></label>
-                @php $disposingPhoneType = $val('disposing_phone_type', 'MOBILE'); @endphp
-                <select class="form-control" name="disposing_phone_type">
-                    <option value="MOBILE" {{ $disposingPhoneType == 'MOBILE' ? 'selected' : '' }}>MOBILE</option>
-                    <option value="HOME" {{ $disposingPhoneType == 'HOME' ? 'selected' : '' }}>HOME</option>
-                    <option value="WORK" {{ $disposingPhoneType == 'WORK' ? 'selected' : '' }}>WORK</option>
-                    <option value="OTHER" {{ $disposingPhoneType == 'OTHER' ? 'selected' : '' }}>OTHER</option>
-                </select>
-            </div>
         </div>
     </div>
 </div>
+
+{{-- Suggest saved disposing entities while typing in any major field; picking one fills the whole entity --}}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // form input name => column searched on the server
+    var searchable = {
+        disposing_name: 'name',
+        disposing_address1: 'address_line_1',
+        disposing_city: 'city',
+        disposing_zip: 'zip',
+        disposing_phone: 'phone_number'
+    };
+    var map = {
+        name: 'disposing_name',
+        address_line_1: 'disposing_address1', address_line_2: 'disposing_address2',
+        city: 'disposing_city', state: 'disposing_state', zip: 'disposing_zip',
+        county: 'disposing_county', phone_number: 'disposing_phone'
+    };
+    var searchUrl = @json(route('ndtc.entities.search'));
+
+    Object.keys(searchable).forEach(function (inputName) {
+        var input = document.querySelector('[name="' + inputName + '"]');
+        if (!input) return;
+
+        var box = document.createElement('div');
+        box.className = 'list-group shadow-sm';
+        box.style.cssText = 'position:absolute;z-index:1050;display:none;min-width:320px;max-height:260px;overflow:auto';
+        input.parentNode.style.position = 'relative';
+        input.parentNode.appendChild(box);
+        var timer = null;
+
+        function hide() { box.style.display = 'none'; box.innerHTML = ''; }
+
+        function fill(entity) {
+            Object.keys(map).forEach(function (key) {
+                var el = document.querySelector('[name="' + map[key] + '"]');
+                if (el) el.value = entity[key] || '';
+            });
+            hide();
+        }
+
+        input.addEventListener('input', function () {
+            clearTimeout(timer);
+            var q = input.value.trim();
+            if (q.length < 2) { hide(); return; }
+            timer = setTimeout(function () {
+                var url = searchUrl + '?field=' + encodeURIComponent(searchable[inputName]) + '&q=' + encodeURIComponent(q);
+                fetch(url, {
+                    headers: {'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
+                    credentials: 'same-origin'
+                }).then(function (r) { return r.ok ? r.json() : []; }).then(function (rows) {
+                    box.innerHTML = '';
+                    if (!rows.length) { hide(); return; }
+                    rows.forEach(function (row) {
+                        var item = document.createElement('button');
+                        item.type = 'button';
+                        item.className = 'list-group-item list-group-item-action py-2';
+                        var title = document.createElement('strong');
+                        title.textContent = row.name;
+                        var sub = document.createElement('div');
+                        sub.className = 'small text-muted';
+                        sub.textContent = [row.address_line_1, row.city, row.state, row.zip, row.phone_number].filter(Boolean).join(', ');
+                        item.appendChild(title);
+                        item.appendChild(sub);
+                        item.addEventListener('mousedown', function (e) { e.preventDefault(); fill(row); });
+                        box.appendChild(item);
+                    });
+                    box.style.display = 'block';
+                }).catch(hide);
+            }, 250);
+        });
+
+        input.addEventListener('blur', function () { setTimeout(hide, 150); });
+    });
+});
+</script>

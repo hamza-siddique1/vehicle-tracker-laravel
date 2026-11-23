@@ -102,15 +102,6 @@
                                value="{{ $val('representative_phone') }}"
                                placeholder="555-555-5555">
                     </div>
-                    <div class="form-group col-md-3">
-                        <label>Phone Type <span class="badge badge-optional">OPTIONAL</span></label>
-                        <select class="form-control" name="representative_phone_type">
-                            <option value="MOBILE" {{ old('representative_phone_type') == 'MOBILE' ? 'selected' : '' }}>MOBILE</option>
-                            <option value="HOME" {{ old('representative_phone_type') == 'HOME' ? 'selected' : '' }}>HOME</option>
-                            <option value="WORK" {{ old('representative_phone_type') == 'WORK' ? 'selected' : '' }}>WORK</option>
-                            <option value="OTHER" {{ old('representative_phone_type') == 'OTHER' ? 'selected' : '' }}>OTHER</option>
-                        </select>
-                    </div>
                 </div>
             </div>
         </div>
