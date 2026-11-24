@@ -818,7 +818,15 @@
 
         @php
             $failedDocs   = $order->documents->where('status', 'FAILED');
-            $uploadedDocs = $order->documents->whereNotIn('status', ['FAILED','REPLACED']);
+            // user uploads first, newest on top; system-generated documents follow
+            $uploadedDocs = $order->documents
+                ->whereNotIn('status', ['FAILED','REPLACED'])
+                ->sortBy([
+                    fn ($a, $b) => (int) $a->is_system_generated <=> (int) $b->is_system_generated,
+                    fn ($a, $b) => ($b->uploaded_at?->timestamp ?? 0) <=> ($a->uploaded_at?->timestamp ?? 0),
+                    fn ($a, $b) => $b->id <=> $a->id,
+                ])
+                ->values();
         @endphp
 
         @include('pages.ndtc.partials._docs.failed')

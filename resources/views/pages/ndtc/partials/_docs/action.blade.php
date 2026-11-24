@@ -31,7 +31,16 @@
                 <span class="text-muted">System generated</span>
             @elseif($doc->uploaded_at)
                 <span>Uploaded {{ $doc->uploaded_at->format('M d, Y') }}</span>
-                @if($doc->uploaded_at->gt(now()->subMinutes(2)))
+                @php
+                    // only the single most recently uploaded document gets the tag, so the user can tell which one is new
+                    $latestUploaded = $order->documents()
+                        ->where('is_system_generated', false)
+                        ->whereNotNull('uploaded_at')
+                        ->orderByDesc('uploaded_at')
+                        ->orderByDesc('id')
+                        ->first();
+                @endphp
+                @if($latestUploaded && $latestUploaded->id === $doc->id && $doc->uploaded_at->gt(now()->subMinutes(2)))
                     {{-- freshly uploaded: bounces a few times, then stays as a plain tag --}}
                     <span class="badge badge-success doc-just-uploaded">
                         <i class="fas fa-check mr-1"></i>Just uploaded · {{ $doc->uploaded_at->diffForHumans() }}
